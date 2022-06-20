@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "layui@2.6.13",
+      "destination": "wwwroot/lib/layui/",
+      "files": [
+        "dist/layui.js",
+        "dist/css/layui.css",
+        "dist/css/modules/laydate/default/laydate.css",
+        "dist/css/modules/layer/default/icon-ext.png",
+        "dist/css/modules/layer/default/icon.png",
+        "dist/css/modules/layer/default/layer.css",
+        "dist/css/modules/layer/default/loading-0.gif",
+        "dist/css/modules/layer/default/loading-1.gif",
+        "dist/css/modules/layer/default/loading-2.gif",
+        "dist/css/modules/code.css",
+        "dist/font/iconfont.eot",
+        "dist/font/iconfont.svg",
+        "dist/font/iconfont.ttf",
+        "dist/font/iconfont.woff",
+        "dist/font/iconfont.woff2"
+      ]
+    }
+  ]
+}
