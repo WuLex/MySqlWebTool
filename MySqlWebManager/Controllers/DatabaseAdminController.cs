@@ -19,8 +19,8 @@ namespace MySqlWebManager.Controllers
     {
         #region 变量
         private string connStr =
-"Data Source={0};Initial Catalog={1};Persist Security Info=True;User ID={2};Password={3};Pooling=False;charset=utf8;" +
-"MAX Pool Size=2000;Min Pool Size=1;Connection Lifetime=30;";
+                                "Data Source={0};Initial Catalog={1};Persist Security Info=True;User ID={2};Password={3};Pooling=False;charset=utf8;" +
+                                "MAX Pool Size=2000;Min Pool Size=1;Connection Lifetime=30;";
 
         private string conn = string.Empty;
 
@@ -186,27 +186,28 @@ namespace MySqlWebManager.Controllers
 
         #region bind
 
-        public void BindTables()
+        [HttpPost]
+        public void BindTables(string txt_db)
         {
-            string sql = string.Format(gettables, txt_db.Text);
+            string sql = string.Format(gettables, txt_db);
             lb_tables.DataSource = GetTable(sql);
             lb_tables.DataTextField = "table_name";
             lb_tables.DataValueField = "table_name";
             lb_tables.DataBind();
         }
 
-        public void BindFlieds(string tablename)
+        public void BindFlieds(string tablename, string txt_db)
         {
-            gv_fileds.DataSource = GetTable(string.Format(getflieds, tablename, txt_db.Text));
+            gv_fileds.DataSource = GetTable(string.Format(getflieds, tablename, txt_db));
             gv_fileds.DataBind();
         }
 
-        protected void Button1_Click(object sender, EventArgs e)
+        protected void btnConnection(string txt_db)
         {
-            BindTables();
+            BindTables(txt_db);
         }
 
-        protected void lb_tables_SelectedIndexChanged(object sender, EventArgs e)
+        protected void lb_tables_SelectedIndexChanged()
         {
             BindFlieds(lb_tables.SelectedItem.Text);
         }
@@ -539,8 +540,8 @@ namespace MySqlWebManager.Controllers
             var count = dt.Rows.Count;
 
             //得到条件
-            var IndexID = Request.Query["cb2"];
-            var SelectFlied = Request.Query["cb3"];
+            var IndexID =Convert.ToString(Request.Query["cb2"]);
+            var SelectFlied = Convert.ToString(Request.Query["cb3"]);
             if (string.IsNullOrEmpty(IndexID))
             {
                 Page.RegisterStartupScript("alert", "<script>alert('请选择表条件!')</script>");
@@ -1460,17 +1461,17 @@ namespace MySqlWebManager.Controllers
             CreateModel();
         }
 
-        protected void Button2_Click(object sender, EventArgs e)
+        protected void Button2_Click(string txt_namespace, string txt_file, string txt_db)
         {
-            string Modelnamespace = txt_namespace.Text;
-            string ModelFile = txt_file.Text;
+            string Modelnamespace = txt_namespace;
+            string ModelFile = txt_file;
 
-            string sql = string.Format(gettables, txt_db.Text);
+            string sql = string.Format(gettables, txt_db);
             var dt = GetTable(sql);
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 string tablename = dt.Rows[i]["table_name"].ToString();
-                string wjj = ModelFile + txt_db.Text;
+                string wjj = ModelFile + txt_db;
                 if (!Directory.Exists(wjj))
                 {
                     Directory.CreateDirectory(wjj);
@@ -1487,7 +1488,7 @@ namespace MySqlWebManager.Controllers
                 using (StreamWriter w = System.IO.File.AppendText(path))
                 {
                     StringBuilder sb = new StringBuilder();
-                    var dt1 = GetTable(string.Format(getflieds, tablename, txt_db.Text));
+                    var dt1 = GetTable(string.Format(getflieds, tablename, txt_db));
                     var count = dt1.Rows.Count;
 
                     #region
