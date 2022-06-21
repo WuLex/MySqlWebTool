@@ -11,29 +11,45 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
+using SqlSugar;
 
 namespace MySqlWebManager.Controllers
 {
     public class DatabaseAdminController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
+        #region 变量
         private string connStr =
-       "Data Source={0};Initial Catalog={1};Persist Security Info=True;User ID={2};Password={3};Pooling=False;charset=utf8;" +
-       "MAX Pool Size=2000;Min Pool Size=1;Connection Lifetime=30;";
+"Data Source={0};Initial Catalog={1};Persist Security Info=True;User ID={2};Password={3};Pooling=False;charset=utf8;" +
+"MAX Pool Size=2000;Min Pool Size=1;Connection Lifetime=30;";
 
-        private string conn = System.Configuration.ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+        private string conn = string.Empty;
 
+        //sql字符串
         private readonly string gettables = "select table_name from information_schema.tables where table_schema='{0}'";
-
         private readonly string getflieds =
             "select column_name name,data_type type,COLUMN_TYPE,column_comment as info,extra as auto,CHARACTER_MAXIMUM_LENGTH as len " +
             "from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}'";
 
         public int z = 0;
+        #endregion
+
+        #region 依赖注入
+        private readonly IConfiguration _configuration;
+        private readonly ISqlSugarClient _db; // 核心对象：拥有完整的SqlSugar全部功能
+        public DatabaseAdminController(IConfiguration configuration, ISqlSugarClient db)
+        {
+            _configuration = configuration;
+            _db = db;
+            conn = _configuration.GetConnectionString("DefaultConnection");
+        }
+        #endregion
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        
 
         //protected void Page_Load(object sender, EventArgs e)
         //{
