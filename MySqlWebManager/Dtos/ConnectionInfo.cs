@@ -1,6 +1,6 @@
 ﻿namespace MySqlWebManager.Dtos
 {
-    public class ConnectionInfo
+    public class ConnectionDto
     {
         public string txt_server { get; set; }
         public string txt_db { get; set; }
