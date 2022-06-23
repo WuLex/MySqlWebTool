@@ -56,22 +56,7 @@ namespace MySqlWebManager.Controllers
         //    }
         //}
 
-        #region DB
-
-        public DataTable GetTable(ConnectionDto connectionDto, string sql)
-        {
-            var connInfo = new ConnectionDto()
-            {
-                txt_db = "",
-                txt_pwd = "",
-                txt_server = "",
-                txt_uid = ""
-            };
-            conn = string.Format(connStr, connInfo.txt_server, connInfo.txt_db, connInfo.txt_uid, connInfo.txt_pwd);
-            DataSet ds = MySqlHelper.ExecuteDataset(conn, sql);
-            return ds.Tables[0];
-        }
-
+        #region MVC方法
         [HttpPost]
         public async Task<List<string>> GetTablesListAsync([FromBody] ConnectionDto connectionDto)
         {
@@ -88,7 +73,29 @@ namespace MySqlWebManager.Controllers
             return await _db.Ado.SqlQueryAsync<string>(getTableSql);
         }
 
-        public async Task<List<TableField>> GetTableFieldsListAsync(string sql)
+        public async Task<List<TableField>> GetTableFieldsListAsync(string tablename)
+        {
+            var connInfo = new ConnectionDto()
+            {
+                txt_db = "",
+                txt_pwd = "",
+                txt_server = "",
+                txt_uid = ""
+            };
+
+            string getTableFieldSql = string.Format(getflieds, tablename, "txt_db");
+
+            conn = string.Format(connStr, connInfo.txt_server, connInfo.txt_db, connInfo.txt_uid, connInfo.txt_pwd);
+            return await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+        }
+
+
+        #endregion
+
+
+        #region DB
+
+        public DataTable GetTable(ConnectionDto connectionDto, string sql)
         {
             var connInfo = new ConnectionDto()
             {
@@ -98,8 +105,10 @@ namespace MySqlWebManager.Controllers
                 txt_uid = ""
             };
             conn = string.Format(connStr, connInfo.txt_server, connInfo.txt_db, connInfo.txt_uid, connInfo.txt_pwd);
-            return await _db.Ado.SqlQueryAsync<TableField>(sql);
+            DataSet ds = MySqlHelper.ExecuteDataset(conn, sql);
+            return ds.Tables[0];
         }
+
 
         public void ExecuteSql(string sql)
         {
