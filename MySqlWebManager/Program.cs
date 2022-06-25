@@ -1,3 +1,5 @@
+using MySqlWebManager.Common;
+using MySqlWebManager.Extentions;
 using SqlSugar;
 
 //IConfiguration configuration = new ConfigurationBuilder()
@@ -6,8 +8,14 @@ using SqlSugar;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+MyServiceProvider.ServiceProvider = builder.Services.BuildServiceProvider();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+#region 批量依赖注入
+builder.Services.BatchRegisterService("MySqlWebManager");
+#endregion
 
 #region SqlSugar注入
 builder.Services.AddScoped<ISqlSugarClient>(o =>

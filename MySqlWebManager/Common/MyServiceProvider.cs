@@ -1,4 +1,4 @@
-﻿namespace MySqlWebManager.Implements
+﻿namespace MySqlWebManager.Common
 {
     public class MyServiceProvider
     {

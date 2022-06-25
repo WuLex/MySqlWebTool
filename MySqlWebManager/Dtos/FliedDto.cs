@@ -3,28 +3,38 @@
     public class FliedDto
     {
         /// <summary>
-        /// column_name
+        /// COLUMN_NAME
         /// </summary>
-        public string Name { get; set; }
+        public string ColumnName { get; set; }
 
         /// <summary>
-        /// data_type
+        /// DATA_TYPE 
         /// </summary>
-        public string Type { get; set; }
+        public string DATA_TYPE { get; set; }
 
         /// <summary>
-        /// column_comment
-        /// </summary>
-        public string Info { get; set; }
+        /// COLUMN_TYPE
+        /// </summary> 
+        public string COLUMN_TYPE { get; set; }
 
         /// <summary>
-        /// extra
+        /// IS_NULLABLE
+        /// </summary>
+        public string IS_NULL { get; set; }
+
+        /// <summary>
+        /// COLUMN_COMMENT
+        /// </summary>
+        public string Comment { get; set; }
+
+        /// <summary>
+        /// EXTRA
         /// </summary>
         public string Auto { get; set; }
 
         /// <summary>
         /// CHARACTER_MAXIMUM_LENGTH
         /// </summary>
-        public string Len { get; set; }
+        public string MaxLen { get; set; }
     }
 }

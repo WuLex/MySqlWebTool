@@ -1,11 +1,12 @@
 ﻿namespace MySqlWebManager.Dtos
 {
+    [Serializable]
     public class ConnectionDto
     {
-        public string txt_server { get; set; }
-        public string txt_db { get; set; }
-        public string txt_uid { get; set; }
-        public string txt_pwd { get; set; }
+        public string Server { get; set; }
+        public string Db { get; set; }
+        public string Uid { get; set; }
+        public string Pwd { get; set; }
 
         public string ConnectionId { get; set; }
 

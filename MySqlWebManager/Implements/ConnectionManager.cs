@@ -16,8 +16,9 @@ namespace MySqlWebManager.Implements
         private static string _ContentRootPath = MyServiceProvider.ServiceProvider.GetRequiredService<IWebHostEnvironment>().ContentRootPath;
 
         //= Path.Combine(HttpRuntime.AppDomainAppPath, @"App_Data\Connection.xml");
-        private readonly string s_savePath = Path.Combine(_ContentRootPath, @"Files\Connection.xml");
 
+        private readonly string s_saveDirectory = Path.Combine(_ContentRootPath, "Files");
+        private readonly string s_savePath = Path.Combine(_ContentRootPath, @"Files\Connection.xml");
 
 
         /// <inheritdoc />
@@ -101,7 +102,7 @@ namespace MySqlWebManager.Implements
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public ConnectionDto GetConnectionDtoById(string connectionId, bool increasePriority)
+        public ConnectionDto? GetConnectionDtoById(string connectionId, bool increasePriority)
         {
             if (string.IsNullOrEmpty(connectionId))
                 throw new ArgumentNullException("connectionId");
@@ -130,7 +131,21 @@ namespace MySqlWebManager.Implements
             {
                 try
                 {
+                    if (!Directory.Exists(s_saveDirectory))
+                    {
+                        Directory.CreateDirectory(s_saveDirectory);
+                    }
+
+                    if (!File.Exists(s_savePath))
+                    {
+                        File.Create(s_savePath).Close();
+                    }
+
                     s_list = XmlHelper.XmlDeserializeFromFile<List<ConnectionDto>>(s_savePath, DefaultEncoding);
+                    if (s_list == null)
+                    {
+                        s_list = new List<ConnectionDto>();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -155,7 +170,7 @@ namespace MySqlWebManager.Implements
             }
             else
             {
-                XmlHelper.XmlSerializeToFile(s_list, s_savePath, DefaultEncoding);
+                XmlHelper.XmlSerializeToFile(s_list.Distinct().ToList(), s_savePath, DefaultEncoding);
             }
         }
     }

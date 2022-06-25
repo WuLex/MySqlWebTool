@@ -2,6 +2,9 @@
 using MySql.Data.MySqlClient;
 using MySqlWebManager.Common;
 using MySqlWebManager.Dtos;
+using MySqlWebManager.Implements;
+using MySqlWebManager.Interfaces;
+using MySqlWebManager.Models;
 using MySqlWebManager.util;
 using SqlSugar;
 using System.Data;
@@ -23,7 +26,7 @@ namespace MySqlWebManager.Controllers
         private readonly string gettables = "select table_name from information_schema.tables where table_schema='{0}'";
 
         private readonly string getflieds =
-            "select column_name name,data_type type,COLUMN_TYPE,column_comment as info,extra as auto,CHARACTER_MAXIMUM_LENGTH as len " +
+            "select column_name ColumnName,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE as IS_NULL,column_comment as Comment,extra as Auto,CHARACTER_MAXIMUM_LENGTH as MaxLen " +
             "from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}'";
 
         public int z = 0;
@@ -32,12 +35,14 @@ namespace MySqlWebManager.Controllers
         #region 依赖注入
         private readonly IConfiguration _configuration;
         private readonly ISqlSugarClient _db; // 核心对象：拥有完整的SqlSugar全部功能
+        private readonly IConnectionManager _connectionManager;
 
-        public DatabaseAdminController(IConfiguration configuration, ISqlSugarClient db)
+        public DatabaseAdminController(IConfiguration configuration, ISqlSugarClient db, IConnectionManager connectionManager)
         {
             _configuration = configuration;
             _db = db;
             conn = _configuration.GetConnectionString("DefaultConnection");
+            _connectionManager = connectionManager;
         }
 
         #endregion 依赖注入
@@ -58,37 +63,57 @@ namespace MySqlWebManager.Controllers
 
         #region MVC方法
         [HttpPost]
-        public async Task<List<string>> GetTablesListAsync([FromBody] ConnectionDto connectionDto)
+        public async Task<TableInfoDto> GetTablesListAsync([FromBody] ConnectionDto connectionDto)
         {
-            //var connInfo = new ConnectionDto()
-            //{
-            //    txt_db = "",
-            //    txt_pwd = "",
-            //    txt_server = "",
-            //    txt_uid = ""
-            //};
-            string getTableSql = string.Format(gettables, connectionDto.txt_db);
-            conn = string.Format(connStr, connectionDto.txt_server, connectionDto.txt_db, connectionDto.txt_uid, connectionDto.txt_pwd);
+            var tableInfoDto = new TableInfoDto() { ConnectionId = "", TableNameList = new List<string>() };
+            string getTableSql = string.Format(gettables, connectionDto.Db);
+            conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
             _db.Ado.Connection.ConnectionString = conn;
-            return await _db.Ado.SqlQueryAsync<string>(getTableSql);
-        }
-
-        public async Task<List<TableField>> GetTableFieldsListAsync(string tablename)
-        {
-            var connInfo = new ConnectionDto()
+            try
             {
-                txt_db = "",
-                txt_pwd = "",
-                txt_server = "",
-                txt_uid = ""
-            };
+                _db.Ado.CheckConnection();
+                connectionDto.ConnectionId = Guid.NewGuid().ToString();
+                _connectionManager.AddConnection(connectionDto);
 
-            string getTableFieldSql = string.Format(getflieds, tablename, "txt_db");
+                tableInfoDto.ConnectionId = connectionDto.ConnectionId;
+                tableInfoDto.TableNameList = await _db.Ado.SqlQueryAsync<string>(getTableSql);
+            }
+            catch (Exception ex)
+            {
+                //return Json(new { code = -1, msg = "无数据", count = 0, data = "" });
+                return tableInfoDto;
+            }
 
-            conn = string.Format(connStr, connInfo.txt_server, connInfo.txt_db, connInfo.txt_uid, connInfo.txt_pwd);
-            return await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+            return tableInfoDto;
         }
 
+        [HttpPost]
+        public async Task<PageDataResult<TableField>> GetTableFieldsListAsync([FromBody] TableInputDto tableInputDto)
+        {
+            //获取指定connectid的数据库信息
+            ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(tableInputDto.ConnectionId, true);
+            if (connectionDto != null)
+            {
+                string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
+                conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
+                _db.Ado.Connection.ConnectionString = conn;
+
+                List<TableField> datList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+                var totalCount = datList.Count();
+
+                return new PageDataResult<TableField>()
+                {
+                    Msg = "success",
+                    Code = 0,
+                    Count = totalCount,
+                    Data = datList
+                }; 
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         #endregion
 
@@ -99,12 +124,13 @@ namespace MySqlWebManager.Controllers
         {
             var connInfo = new ConnectionDto()
             {
-                txt_db = "",
-                txt_pwd = "",
-                txt_server = "",
-                txt_uid = ""
+                Server = connectionDto.Server,
+                Db = connectionDto.Db,
+                Uid = connectionDto.Uid,
+                Pwd = connectionDto.Pwd,
+                ConnectionId = connectionDto.ConnectionId,
             };
-            conn = string.Format(connStr, connInfo.txt_server, connInfo.txt_db, connInfo.txt_uid, connInfo.txt_pwd);
+            conn = string.Format(connStr, connInfo.Server, connInfo.Db, connInfo.Uid, connInfo.Pwd);
             DataSet ds = MySqlHelper.ExecuteDataset(conn, sql);
             return ds.Tables[0];
         }
@@ -232,7 +258,7 @@ namespace MySqlWebManager.Controllers
         [HttpPost]
         public void BindTables(ConnectionDto connectionDto)
         {
-            string getTableSql = string.Format(gettables, connectionDto.txt_db);
+            string getTableSql = string.Format(gettables, connectionDto.Db);
             //lb_tables.DataSource = GetTable(connectionDto,getTableSql);
             //lb_tables.DataTextField = "table_name";
             //lb_tables.DataValueField = "table_name";

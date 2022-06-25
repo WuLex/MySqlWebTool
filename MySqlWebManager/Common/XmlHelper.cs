@@ -6,14 +6,14 @@ namespace MySqlWebManager.Common
 {
     public static class XmlHelper
     {
-        private static byte[] XmlSerializeInternal(object o, Encoding encoding)
+        private static byte[] XmlSerializeInternal<T>(T o, Encoding encoding)
         {
             if (o == null)
                 throw new ArgumentNullException("o");
             if (encoding == null)
                 throw new ArgumentNullException("encoding");
 
-            XmlSerializer ser = new XmlSerializer(o.GetType());
+            XmlSerializer ser = new XmlSerializer(typeof(T));
             using (MemoryStream ms = new MemoryStream())
             {
                 using (XmlTextWriter writer = new XmlTextWriter(ms, encoding))
@@ -33,7 +33,7 @@ namespace MySqlWebManager.Common
         /// <param name="o">要序列化的对象</param>
         /// <param name="encoding">编码方式</param>
         /// <returns>序列化产生的XML字符串</returns>
-        public static string XmlSerialize(object o, Encoding encoding)
+        public static string XmlSerialize<T>(T o, Encoding encoding)
         {
             byte[] bytes = XmlSerializeInternal(o, encoding);
             return encoding.GetString(bytes);
@@ -45,7 +45,7 @@ namespace MySqlWebManager.Common
         /// <param name="o">要序列化的对象</param>
         /// <param name="path">保存文件路径</param>
         /// <param name="encoding">编码方式</param>
-        public static void XmlSerializeToFile(object o, string path, Encoding encoding)
+        public static void XmlSerializeToFile<T>(T o, string path, Encoding encoding)
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException("path");
@@ -85,7 +85,7 @@ namespace MySqlWebManager.Common
         /// <param name="path">文件路径</param>
         /// <param name="encoding">编码方式</param>
         /// <returns>反序列化得到的对象</returns>
-        public static T XmlDeserializeFromFile<T>(string path, Encoding encoding)
+        public static T? XmlDeserializeFromFile<T>(string path, Encoding encoding)
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException("path");
@@ -93,6 +93,10 @@ namespace MySqlWebManager.Common
                 throw new ArgumentNullException("encoding");
 
             string xml = File.ReadAllText(path, encoding);
+            if (string.IsNullOrEmpty(xml))
+            {
+                return default;
+            }
             return XmlDeserialize<T>(xml, encoding);
         }
     }
