@@ -2,7 +2,6 @@
 using MySql.Data.MySqlClient;
 using MySqlWebManager.Common;
 using MySqlWebManager.Dtos;
-using MySqlWebManager.Implements;
 using MySqlWebManager.Interfaces;
 using MySqlWebManager.Models;
 using MySqlWebManager.util;
@@ -62,6 +61,7 @@ namespace MySqlWebManager.Controllers
         //}
 
         #region MVC方法
+
         [HttpPost]
         public async Task<TableInfoDto> GetTablesListAsync([FromBody] ConnectionDto connectionDto)
         {
@@ -73,7 +73,7 @@ namespace MySqlWebManager.Controllers
             {
                 _db.Ado.CheckConnection();
                 connectionDto.ConnectionId = Guid.NewGuid().ToString();
-                _connectionManager.AddConnection(connectionDto);
+                _connectionManager.AddConnection(connectionDto); //添加连接信息到xml
 
                 tableInfoDto.ConnectionId = connectionDto.ConnectionId;
                 tableInfoDto.TableNameList = await _db.Ado.SqlQueryAsync<string>(getTableSql);
@@ -107,7 +107,7 @@ namespace MySqlWebManager.Controllers
                     Code = 0,
                     Count = totalCount,
                     Data = datList
-                }; 
+                };
             }
             else
             {
@@ -115,8 +115,7 @@ namespace MySqlWebManager.Controllers
             }
         }
 
-        #endregion
-
+        #endregion MVC方法
 
         #region DB
 
@@ -134,7 +133,6 @@ namespace MySqlWebManager.Controllers
             DataSet ds = MySqlHelper.ExecuteDataset(conn, sql);
             return ds.Tables[0];
         }
-
 
         public void ExecuteSql(string sql)
         {
@@ -605,13 +603,15 @@ namespace MySqlWebManager.Controllers
         #region 列表
 
         [HttpPost]
-        public IActionResult GetList()
+        public IActionResult GetList(GenerateCodeInputDto  generateCodeInputDto)
         {
             #region
 
-            StringBuilder Sb = new StringBuilder();
-            var tablename = ""; //lb_tables.SelectedItem.Text;
+            StringBuilder sb = new StringBuilder();
+            var tablename = generateCodeInputDto.TableName; //lb_tables.SelectedItem.Text;
             //var dt = GetTable(string.Format(getflieds, tablename, txt_db.Text));
+
+
             DataTable dt = null;
             var count = dt.Rows.Count;
 
@@ -662,9 +662,9 @@ namespace MySqlWebManager.Controllers
 
             #endregion
 
-            Sb.Append("public IList<" + tablename + "> GetList(" + conndetion + "int top = 10)");
-            Sb.Append("\n{\n");
-            Sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
+            sb.Append("public IList<" + tablename + "> GetList(" + conndetion + "int top = 10)");
+            sb.Append("\n{\n");
+            sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
 
             #region 字段
 
@@ -769,8 +769,8 @@ namespace MySqlWebManager.Controllers
             #endregion
 
             sql += " limit @top";
-            Sb.Append("string sql=\"" + sql + "\";");
-            Sb.Append("\rMySqlParameter[] parameters = {");
+            sb.Append("string sql=\"" + sql + "\";");
+            sb.Append("\rMySqlParameter[] parameters = {");
 
             #region 条件
 
@@ -794,8 +794,8 @@ namespace MySqlWebManager.Controllers
                 {
                     if (fliedname == arrayIndexID[j].ToString())
                     {
-                        Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
-                        Sb.Append(",");
+                        sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
+                        sb.Append(",");
                         conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
                     }
                 }
@@ -803,31 +803,31 @@ namespace MySqlWebManager.Controllers
                 #endregion
             }
 
-            Sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
+            sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
             conndetion += "\rparameters[" + c++ + "].Value = top;";
 
             #endregion
 
-            Sb.Append("\r\t\t\t\t};");
-            Sb.Append(conndetion);
-            Sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
-            Sb.Append("\r{");
-            Sb.Append("\t\rwhile (dr.Read())");
-            Sb.Append("\t\r{");
+            sb.Append("\r\t\t\t\t};");
+            sb.Append(conndetion);
+            sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
+            sb.Append("\r{");
+            sb.Append("\t\rwhile (dr.Read())");
+            sb.Append("\t\r{");
             //Sb.Append("\t\rlist.Add(ReaderBind(dr));");
 
             #region read bind
 
-            Sb.Append(sbBinder.ToString());
+            sb.Append(sbBinder.ToString());
 
             #endregion
 
-            Sb.Append("\t\r}");
-            Sb.Append("\r}");
-            Sb.Append("\rreturn list;");
-            Sb.Append("\n}\n");
+            sb.Append("\t\r}");
+            sb.Append("\r}");
+            sb.Append("\rreturn list;");
+            sb.Append("\n}\n");
             //txt_content.Text = Sb.ToString();
-            return Content(Sb.ToString());
+            return Content(sb.ToString());
         }
 
         #endregion
@@ -1467,153 +1467,208 @@ namespace MySqlWebManager.Controllers
 
         #region Model
 
-        //public IActionResult CreateModel()
-        //{
-        //    if (lb_tables.SelectedItem == null)
-        //    {
-        //        //Page.RegisterStartupScript("alert", "<script>alert('请选择表!')</script>");
-        //        //return;
-        //        return new JavaScriptResult("alert('请选择表!')");
-        //    }
+        public async Task<IActionResult> CreateModelAsync([FromBody] TableInputDto tableInputDto)
+        {
+            #region 检查数据
+            //获取指定connectid的数据库信息
+            ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(tableInputDto.ConnectionId, true);
+            if (connectionDto != null)
+            {
+                conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
+                _db.Ado.Connection.ConnectionString = conn;
+            }
+            else
+            {
+                return new JavaScriptResult("alert('数据库连接信息丢失,请重新连接!')");
+            }
 
-        //    StringBuilder sb = new StringBuilder();
+            var tablename = tableInputDto.TableName;
+            if (string.IsNullOrEmpty(tablename))
+            {
+                //Page.RegisterStartupScript("alert", "<script>alert('请选择表!')</script>");
+                //return;
+                return new JavaScriptResult("alert('请选择表!')");
+            }
 
-        //    #region
+            #endregion
 
-        //    var tablename = lb_tables.SelectedItem.Text;
-        //    var dt = GetTable(string.Format(getflieds, tablename, txt_db.Text));
-        //    var count = dt.Rows.Count;
+            #region 获取表字段结构信息
 
-        //    #endregion
+            //var dt = GetTable(string.Format(getflieds, tablename, connectionDto.Db));
+            //var count = dt.Rows.Count;
 
-        //    sb.Append("public class " + tablename);
-        //    sb.Append("\r{");
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
-        //        var info = dt.Rows[i]["info"].ToString();
+            string getTableFieldSql = string.Format(getflieds, tablename, connectionDto.Db);
+            List<TableField> dataList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+            var totalCount = dataList.Count();
+            #endregion
 
-        //        #region 参数
+            #region 拼接class 类字符串
+            StringBuilder sb = new StringBuilder();
+            sb.Append("public class " + tablename);
+            sb.Append("\r{");
+            for (int i = 0; i < totalCount; i++)
+            {
+                //var fliedname = dt.Rows[i]["name"].ToString();
+                //var fliedtype = dt.Rows[i]["type"].ToString();
+                //var info = dt.Rows[i]["info"].ToString();
+                var fliedname = dataList[i].ColumnName;
+                var fliedtype = dataList[i].DATA_TYPE;
+                var comment = dataList[i].Comment;
 
-        //        if (!string.IsNullOrWhiteSpace(info))
-        //        {
-        //            sb.Append("\r\t/// <summary>");
-        //            sb.Append("\r\t/// " + info);
-        //            sb.Append("\r\t/// </summary>");
-        //        }
+                #region 参数 字段属性
+                if (!string.IsNullOrWhiteSpace(comment))
+                {
+                    sb.Append("\r\t/// <summary>");
+                    sb.Append("\r\t/// " + comment);
+                    sb.Append("\r\t/// </summary>");
+                }
+                sb.Append("\r\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
+                #endregion
+            }
+            sb.Append("\r}");
+            #endregion
+            //txt_content.Text = sb.ToString();
 
-        //        sb.Append("\r\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
-
-        //        #endregion
-        //    }
-
-        //    sb.Append("\r}");
-        //    txt_content.Text = sb.ToString();
-        //}
+            return Content(sb.ToString());
+        }
 
         #endregion
 
-        //protected IActionResult Button3_Click(object sender, EventArgs e)
-        //{
-        //    if (lb_tables.SelectedItem == null)
-        //    {
-        //        //Page.RegisterStartupScript("alert", "<script>alert('请选择表!')</script>");
-        //        //return;
-        //        return new JavaScriptResult("alert('请选择表!')");
-        //    }
+        [HttpPost]
+        protected IActionResult GenerateCode(GenerateCodeInputDto generateCodeInputDto)
+        {
+            #region 变量
+            //lb_tables.SelectedItem
+            //    txt_content.Text
+            #endregion
 
-        //    txt_content.Text = "";
-        //    if (cb_list.Checked)
-        //        GetList();
-        //    if (cb_pagelist.Checked)
-        //        GetPageList();
-        //    if (cb_update.Checked)
-        //        Update();
-        //    if (cb_delete.Checked)
-        //        Delete();
-        //    if (cb_add.Checked)
-        //        Insert();
-        //    if (cb_getmodel.Checked)
-        //        GetModel();
-        //    ReaderBind();
-        //}
+            if (string.IsNullOrEmpty(generateCodeInputDto.TableName))
+            {
+                //Page.RegisterStartupScript("alert", "<script>alert('请选择表!')</script>");
+                //return;
+                return new JavaScriptResult("alert('请选择表!')");
+            }
 
-        //protected void Button4_Click(object sender, EventArgs e)
-        //{
-        //    CreateModel();
-        //}
+            //txt_content.Text = "";
+            var flag = false;
+            if (generateCodeInputDto.MethodDic.TryGetValue("cb_list", out flag))
+            {
+               return GetList(generateCodeInputDto);
+            }
+            //if (cb_pagelist.Checked)
+            //    GetPageList();
+            //if (cb_update.Checked)
+            //    Update();
+            //if (cb_delete.Checked)
+            //    Delete();
+            //if (cb_add.Checked)
+            //    Insert();
+            //if (cb_getmodel.Checked)
+            //    GetModel();
 
-        //protected void Button2_Click(string txt_namespace, string txt_file, string txt_db)
-        //{
-        //    string Modelnamespace = txt_namespace;
-        //    string ModelFile = txt_file;
+            return new JavaScriptResult("alert('未勾选任何一个方法名称!')");
+            //ReaderBind();
+        }
 
-        //    string sql = string.Format(gettables, txt_db);
-        //    var dt = GetTable(sql);
-        //    for (int i = 0; i < dt.Rows.Count; i++)
-        //    {
-        //        string tablename = dt.Rows[i]["table_name"].ToString();
-        //        string wjj = ModelFile + txt_db;
-        //        if (!Directory.Exists(wjj))
-        //        {
-        //            Directory.CreateDirectory(wjj);
-        //        }
+        [HttpPost]
+        protected void GenerateEntity([FromBody] TableInputDto tableInputDto)
+        {
+            _ = CreateModelAsync(tableInputDto);
+        }
 
-        //        string path = wjj + "/" + tablename + ".cs";
-        //        if (!System.IO.File.Exists(path))
-        //        {
-        //            //不存在,则创建
-        //            System.IO.File.Create(path).Close();
-        //        }
+        protected async Task BatchGenerationAsync(BatchGenerationInputDto batchGenerationInputDto )
+        {
+            //string txt_namespace, string txt_file, string txt_db
+            string Modelnamespace = batchGenerationInputDto.Namespace;
+            string ModelFile = batchGenerationInputDto.File;
 
-        //        //写
-        //        using (StreamWriter w = System.IO.File.AppendText(path))
-        //        {
-        //            StringBuilder sb = new StringBuilder();
-        //            var dt1 = GetTable(string.Format(getflieds, tablename, txt_db));
-        //            var count = dt1.Rows.Count;
+            //获取指定connectid的数据库信息
+            ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(batchGenerationInputDto.ConnectionId, true);
+            if (connectionDto != null)
+            {
+                string getTableSql = string.Format(gettables, connectionDto.Db);
+                conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
+                _db.Ado.Connection.ConnectionString = conn;
 
-        //            #region
+                await _db.Ado.SqlQueryAsync<string>(getTableSql);
+            }
+            else
+            {
+                    
+            }
+            //string sql = string.Format(gettables, txt_db);
+            //var dt = GetTable(sql);
 
-        //            sb.Append("using System; ");
-        //            sb.Append("\rnamespace " + Modelnamespace);
-        //            sb.Append("\r{");
-        //            sb.Append("\r\tpublic class " + tablename);
-        //            sb.Append("\r\t{");
-        //            for (int j = 0; j < count; j++)
-        //            {
-        //                var fliedname = dt1.Rows[j]["name"].ToString();
-        //                var fliedtype = dt1.Rows[j]["type"].ToString();
-        //                var info = dt1.Rows[j]["info"].ToString();
+            //--------------------------------------------------
+            //for (int i = 0; i < dt.Rows.Count; i++)
+            //{
+            //    string tablename = dt.Rows[i]["table_name"].ToString();
+            //    string wjj = ModelFile + txt_db;
 
-        //                #region 参数
+            //    #region 检查是否存在,不存在则创建文件
+            //    if (!Directory.Exists(wjj))
+            //    {
+            //        Directory.CreateDirectory(wjj);
+            //    }
 
-        //                if (!string.IsNullOrWhiteSpace(info))
-        //                {
-        //                    sb.Append("\r\t\t/// <summary>");
-        //                    sb.Append("\r\t\t/// " + info);
-        //                    sb.Append("\r\t\t/// </summary>");
-        //                }
+            //    string path = wjj + "/" + tablename + ".cs";
+            //    if (!System.IO.File.Exists(path))
+            //    {
+            //        //不存在,则创建
+            //        System.IO.File.Create(path).Close();
+            //    }
+            //    #endregion
 
-        //                sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
+            //    #region 生成文件到指定路径
+            //    //写
+            //    using (StreamWriter w = System.IO.File.AppendText(path))
+            //    {
+            //        StringBuilder sb = new StringBuilder();
+            //        var dt1 = GetTable(string.Format(getflieds, tablename, txt_db));
+            //        var count = dt1.Rows.Count;
 
-        //                #endregion
-        //            }
+            //        #region
 
-        //            sb.Append("\r\t}");
-        //            sb.Append("\r}");
+            //        sb.Append("using System; ");
+            //        sb.Append("\rnamespace " + Modelnamespace);
+            //        sb.Append("\r{");
+            //        sb.Append("\r\tpublic class " + tablename);
+            //        sb.Append("\r\t{");
+            //        for (int j = 0; j < count; j++)
+            //        {
+            //            var fliedname = dt1.Rows[j]["name"].ToString();
+            //            var fliedtype = dt1.Rows[j]["type"].ToString();
+            //            var info = dt1.Rows[j]["info"].ToString();
 
-        //            #endregion
+            //            #region 参数
 
-        //            w.Write(sb.ToString());
-        //            w.Flush();
-        //            w.Close();
-        //        }
-        //    }
+            //            if (!string.IsNullOrWhiteSpace(info))
+            //            {
+            //                sb.Append("\r\t\t/// <summary>");
+            //                sb.Append("\r\t\t/// " + info);
+            //                sb.Append("\r\t\t/// </summary>");
+            //            }
 
-        //    _ = Response.WriteAsync("ok!");
-        //}
+            //            sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
+
+            //            #endregion
+            //        }
+
+            //        sb.Append("\r\t}");
+            //        sb.Append("\r}");
+
+            //        #endregion
+
+            //        w.Write(sb.ToString());
+            //        w.Flush();
+            //        w.Close();
+            //    }
+            //    #endregion
+
+            //}
+
+            _ = Response.WriteAsync("ok!");
+        }
 
         //-----------------------------------------------------------------------------
         //gv_fileds
