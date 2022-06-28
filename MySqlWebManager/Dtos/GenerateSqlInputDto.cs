@@ -6,6 +6,11 @@
 
         public string ConnectionId { get; set; }
 
-        public Dictionary<string, bool> MethodDic { get; set; }  
+        public List<CheckInfoDto> MethodList { get; set; }
+
+        public List<string> QueryConditionList { get; set; }
+
+        public List<string> QueryFieldList { get; set; }
+
     }
 }
