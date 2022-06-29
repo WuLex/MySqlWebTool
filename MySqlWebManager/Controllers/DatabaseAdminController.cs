@@ -143,111 +143,111 @@ namespace MySqlWebManager.Controllers
 
         #region select
 
-        private IActionResult SelectAll(StringBuilder Sb, DataTable dt, int count, string tablename, string proname)
-        {
-            var cb3list = Request.Query["cb3"].ToString();
-            if (string.IsNullOrEmpty(cb3list))
-            {
-                //Page.RegisterStartupScript("alert", "<script>alert('请选择要查询的列！')</script>");
-                return new JavaScriptResult("alert('请选择要查询的列！')");
-            }
+        //private IActionResult SelectAll(StringBuilder Sb, DataTable dt, int count, string tablename, string proname)
+        //{
+        //    var cb3list = Request.Query["cb3"].ToString();
+        //    if (string.IsNullOrEmpty(cb3list))
+        //    {
+        //        //Page.RegisterStartupScript("alert", "<script>alert('请选择要查询的列！')</script>");
+        //        return new JavaScriptResult("alert('请选择要查询的列！')");
+        //    }
 
-            string[] arraycb3 = new string[] { };
-            arraycb3 = cb3list.Split(',');
+        //    string[] arraycb3 = new string[] { };
+        //    arraycb3 = cb3list.Split(',');
 
-            Sb.Append("CREATE OR REPLACE Procedure pro_" + proname + "_" + tablename);
-            Sb.Append("\n(\n");
-            //
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["column_name"].ToString();
-                var fliedtype = dt.Rows[i]["data_type"].ToString();
-                var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
-                                     //显示选中
+        //    Sb.Append("CREATE OR REPLACE Procedure pro_" + proname + "_" + tablename);
+        //    Sb.Append("\n(\n");
+        //    //
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dt.Rows[i]["column_name"].ToString();
+        //        var fliedtype = dt.Rows[i]["data_type"].ToString();
+        //        var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
+        //                             //显示选中
 
-                #region
+        //        #region
 
-                if (arraycb3.Any())
-                {
-                    for (int j = 0; j < arraycb3.Count(); j++)
-                    {
-                        if (fliedname == arraycb3[j].ToString())
-                        {
-                            Sb.Append("      _" + fliedname + " out " + fliedtype + "(" + fliedlength + ")");
-                            if (j != arraycb3.Count() - 1)
-                            {
-                                Sb.Append(",\n");
-                            }
-                        }
-                    }
-                }
+        //        if (arraycb3.Any())
+        //        {
+        //            for (int j = 0; j < arraycb3.Count(); j++)
+        //            {
+        //                if (fliedname == arraycb3[j].ToString())
+        //                {
+        //                    Sb.Append("      _" + fliedname + " out " + fliedtype + "(" + fliedlength + ")");
+        //                    if (j != arraycb3.Count() - 1)
+        //                    {
+        //                        Sb.Append(",\n");
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                #endregion select
-            }
+        //        #endregion select
+        //    }
 
-            Sb.Append("\n)\n");
-            Sb.Append("AS\n");
-            Sb.Append("BEGIN\n");
-            Sb.Append("   SELECT ");
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
-                var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
-                                     //显示选中
+        //    Sb.Append("\n)\n");
+        //    Sb.Append("AS\n");
+        //    Sb.Append("BEGIN\n");
+        //    Sb.Append("   SELECT ");
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+        //        var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
+        //                             //显示选中
 
-                #region
+        //        #region
 
-                if (arraycb3.Any())
-                {
-                    for (int j = 0; j < arraycb3.Count(); j++)
-                    {
-                        if (fliedname == arraycb3[j].ToString())
-                        {
-                            Sb.Append("[" + fliedname + "]");
-                            if (j != arraycb3.Count() - 1)
-                            {
-                                Sb.Append(",");
-                            }
-                        }
-                    }
-                }
+        //        if (arraycb3.Any())
+        //        {
+        //            for (int j = 0; j < arraycb3.Count(); j++)
+        //            {
+        //                if (fliedname == arraycb3[j].ToString())
+        //                {
+        //                    Sb.Append("[" + fliedname + "]");
+        //                    if (j != arraycb3.Count() - 1)
+        //                    {
+        //                        Sb.Append(",");
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                #endregion
-            }
+        //        #endregion
+        //    }
 
-            Sb.Append(" INTO ");
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
-                var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
-                                     //显示选中
+        //    Sb.Append(" INTO ");
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+        //        var fliedlength = 0; // dt.Rows[i]["data_length"].ToString();
+        //                             //显示选中
 
-                #region
+        //        #region
 
-                if (arraycb3.Any())
-                {
-                    for (int j = 0; j < arraycb3.Count(); j++)
-                    {
-                        if (fliedname == arraycb3[j].ToString())
-                        {
-                            Sb.Append("_" + fliedname);
-                            if (j != arraycb3.Count() - 1)
-                            {
-                                Sb.Append(",");
-                            }
-                        }
-                    }
-                }
+        //        if (arraycb3.Any())
+        //        {
+        //            for (int j = 0; j < arraycb3.Count(); j++)
+        //            {
+        //                if (fliedname == arraycb3[j].ToString())
+        //                {
+        //                    Sb.Append("_" + fliedname);
+        //                    if (j != arraycb3.Count() - 1)
+        //                    {
+        //                        Sb.Append(",");
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                #endregion
-            }
+        //        #endregion
+        //    }
 
-            Sb.Append(" FROM [" + tablename + "]");
+        //    Sb.Append(" FROM [" + tablename + "]");
 
-            return Content(Sb.ToString());
-        }
+        //    return Content(Sb.ToString());
+        //}
 
         #endregion
 
@@ -302,14 +302,14 @@ namespace MySqlWebManager.Controllers
 
         //    string sql = "insert into " + tablename + "(";
         //    string paras = "";
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
         //        if (dt.Rows[i]["auto"].ToString() == "auto_increment")
         //        {
         //            continue;
         //        }
 
-        //        var fliedname = dt.Rows[i]["name"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
         //        sql += fliedname + ",";
         //        paras += "@" + fliedname + ",";
         //    }
@@ -327,15 +327,15 @@ namespace MySqlWebManager.Controllers
 
         //    int c = 0;
         //    string conndetion = "";
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
         //        if (dt.Rows[i]["auto"].ToString() == "auto_increment")
         //        {
         //            continue;
         //        }
 
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
         //        var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
 
         //        #region 参数
@@ -369,54 +369,295 @@ namespace MySqlWebManager.Controllers
 
         #region GetModel
 
-        [HttpPost]
-        public IActionResult GetModel()
+        //[HttpPost]
+        //public IActionResult GetModel(GenerateCodeInputDto generateCodeInputDto)
+        //{
+        //    #region
+
+        //    StringBuilder Sb = new StringBuilder();
+        //    var tablename = "";//lb_tables.SelectedItem.Text;
+        //    DataTable dt = null;// GetTable(string.Format(getflieds, tablename, txt_db.Text));
+        //    var count = dt.Rows.Count;
+
+        //    //得到条件
+        //    var queryConditionList = generateCodeInputDto.QueryConditionList;
+        //   var selectFieldList = generateCodeInputDto.QueryFieldList;
+        //    if (!queryConditionList.Any())
+        //    {
+        //        return new JavaScriptResult("alert('请选择表条件!')");
+        //    }
+
+        //    if (!selectFieldList.Any())
+        //    {
+        //        return new JavaScriptResult("alert('请选择表查询字段!')");
+        //    }
+
+        //    #endregion
+
+        //    string[] arrayIndexID = new string[] { };
+        //    string[] arrayFlied = new string[] { };
+        //    arrayIndexID = IndexID.Split(','); //tiaojian
+        //    arrayFlied = SelectFlied.Split(',');
+
+        //    //Sb.Append("\n\n\n=============Select===============\n");
+
+        //    #region 条件
+
+        //    string conndetion = "";
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+
+        //        #region 参数
+
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j].ToString())
+        //            {
+        //                conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
+        //            }
+        //        }
+
+        //        #endregion
+        //    }
+
+        //    conndetion = conndetion.TrimEnd(',');
+
+        //    #endregion
+
+        //    Sb.Append("public " + tablename + " GetModel(" + conndetion + ")");
+        //    Sb.Append("\n{\n");
+        //    Sb.Append("var model = new " + tablename + "();\r");
+
+        //    #region 字段
+
+        //    string sql = "select ";
+        //    StringBuilder sbBinder = new StringBuilder();
+        //    //sbBinder.Append("\r\t model=new " + tablename + "{");//begin
+
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+
+        //        #region 字段
+
+        //        for (int j = 0; j < arrayFlied.Count(); j++)
+        //        {
+        //            if (fliedname == arrayFlied[j].ToString())
+        //            {
+        //                sql += fliedname;
+        //                if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text")
+        //                {
+        //                    sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString();");
+        //                }
+        //                else if (fliedtype.ToLower() == "bit")
+        //                {
+        //                    sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\";");
+        //                }
+        //                else
+        //                {
+        //                    sbBinder.Append("\r\tmodel." + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
+        //                                    fliedname + "\"].ToString());");
+        //                }
+
+        //                if (j != arrayFlied.Count() - 1)
+        //                {
+        //                    sql += ",";
+        //                }
+        //            }
+        //        }
+
+        //        #endregion
+        //    }
+
+        //    //sbBinder.Append("};");//end
+
+        //    #endregion
+
+        //    sql += " from " + tablename;
+
+        //    #region 条件
+
+        //    conndetion = "";
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        if (i == 0)
+        //        {
+        //            conndetion = " where ";
+        //        }
+
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+
+        //        #region 参数
+
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j].ToString())
+        //            {
+        //                conndetion += fliedname + "=@" + fliedname;
+        //                if (j < queryConditionList.Count() - 1)
+        //                    conndetion += " and ";
+        //            }
+        //        }
+
+        //        //conndetion = conndetion.Trim(',');
+
+        //        #endregion
+        //    }
+
+        //    sql += conndetion;
+
+        //    #endregion
+
+        //    #region 排序
+
+        //    var cb_order = Convert.ToString(Request.Query["cb_order"]);
+        //    if (!string.IsNullOrWhiteSpace(cb_order))
+        //    {
+        //        var _orders = cb_order.Split(',');
+        //        string strOrder = " order by ";
+        //        foreach (var o in _orders)
+        //        {
+        //            var asc = Request.Query["ddl_" + o];
+        //            strOrder += o + " " + asc + ",";
+        //        }
+
+        //        strOrder = strOrder.TrimEnd(',');
+        //        sql += strOrder;
+        //    }
+
+        //    #endregion
+
+        //    sql += " limit 1";
+        //    Sb.Append("string sql=\"" + sql + "\";");
+        //    Sb.Append("\rMySqlParameter[] parameters = {");
+
+        //    #region 条件
+
+        //    conndetion = "";
+        //    int c = 0;
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+        //        var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
+
+        //        #region 参数
+
+        //        string len = "";
+        //        if (!string.IsNullOrWhiteSpace(fliedlen))
+        //        {
+        //            len += "," + fliedlen;
+        //        }
+
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j])
+        //            {
+        //                Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
+        //                if (j < queryConditionList.Count() - 1)
+        //                    Sb.Append(",");
+        //                conndetion += "\rparameters[" + c++ + "].Value = " + queryConditionList[j].ToString() + ";";
+        //            }
+        //        }
+
+        //        #endregion
+        //    }
+
+        //    //Sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
+        //    //conndetion += "\rparameters[" + c++ + "].Value = top;";
+
+        //    #endregion
+
+        //    Sb.Append("\r\t\t\t\t};");
+        //    Sb.Append(conndetion);
+        //    Sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
+        //    Sb.Append("\r{");
+        //    Sb.Append("\t\rif (dr.Read())");
+        //    Sb.Append("\t\r{");
+        //    //Sb.Append("\t\rlist.Add(ReaderBind(dr));");
+
+        //    #region read bind
+
+        //    Sb.Append(sbBinder.ToString());
+
+        //    #endregion
+
+        //    Sb.Append("\t\r}");
+        //    Sb.Append("\r}");
+        //    Sb.Append("\rreturn model;");
+        //    Sb.Append("\n}\n");
+        //    //txt_content.Text += Sb.ToString();
+
+        //    return Content(Sb.ToString());
+        //}
+
+        #endregion
+
+        #region 列表
+
+        public async Task<IActionResult> GetListAsync(GenerateCodeInputDto generateCodeInputDto)
         {
-            #region
+            #region 定义变量
+            StringBuilder sb = new StringBuilder();
+            List<TableField> dataList = new List<TableField>();
+            var totalCount = 0;
+            var tablename = generateCodeInputDto.TableName;
+            #endregion
 
-            StringBuilder Sb = new StringBuilder();
-            var tablename = "";//lb_tables.SelectedItem.Text;
-            DataTable dt = null;// GetTable(string.Format(getflieds, tablename, txt_db.Text));
-            var count = dt.Rows.Count;
+            //获取数据库连接信息
+            ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(generateCodeInputDto.ConnectionId, true);
 
-            //得到条件
-            var IndexID = Convert.ToString(Request.Query["cb2"]);
-            var SelectFlied = Convert.ToString(Request.Query["cb3"]);
-            if (string.IsNullOrEmpty(IndexID))
+            if (connectionDto != null)
             {
-                //Page.RegisterStartupScript("alert", "<script>alert('请选择表条件!')</script>");
+                conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
+                _db.Ado.Connection.ConnectionString = conn;
 
+                string getTableFieldSql = string.Format(getflieds, tablename, connectionDto.Db);
+
+                dataList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+                totalCount = dataList.Count();
+            }
+            //var dt = GetTable(string.Format(getflieds, tablename, txt_db.Text));
+
+            #region 拼接代码字符串
+            //得到条件
+            var queryConditionList = generateCodeInputDto.QueryConditionList;
+            var selectFieldList = generateCodeInputDto.QueryFieldList;
+            if (!queryConditionList.Any())
+            {
                 return new JavaScriptResult("alert('请选择表条件!')");
             }
 
-            if (string.IsNullOrEmpty(SelectFlied))
+            if (!selectFieldList.Any())
             {
-                //Page.RegisterStartupScript("alert", "<script>alert('请选择表查询字段!')</script>");
                 return new JavaScriptResult("alert('请选择表查询字段!')");
             }
 
-            #endregion
+            //string[] arrayIndexID = new string[] { };
+            //string[] arrayFlied = new string[] { };
+            //arrayIndexID = IndexID.Split(','); //tiaojian
+            //arrayFlied = SelectFlied.Split(',');
 
-            string[] arrayIndexID = new string[] { };
-            string[] arrayFlied = new string[] { };
-            arrayIndexID = IndexID.Split(','); //tiaojian
-            arrayFlied = SelectFlied.Split(',');
-
-            //Sb.Append("\n\n\n=============Select===============\n");
+            sb.Append("\n\n\n=============Select===============\n");
 
             #region 条件
 
             string conndetion = "";
-            for (int i = 0; i < count; i++)
+
+            for (int i = 0; i < totalCount; i++)
             {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+                var fliedname = dataList[i].ColumnName;
+                var fliedtype = dataList[i].DATA_TYPE;
 
                 #region 参数
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
+                for (int j = 0; j < queryConditionList.Count(); j++)
                 {
-                    if (fliedname == arrayIndexID[j].ToString())
+                    if (fliedname == queryConditionList[j].ToString())
                     {
                         conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
                     }
@@ -425,49 +666,48 @@ namespace MySqlWebManager.Controllers
                 #endregion
             }
 
-            conndetion = conndetion.TrimEnd(',');
-
             #endregion
 
-            Sb.Append("public " + tablename + " GetModel(" + conndetion + ")");
-            Sb.Append("\n{\n");
-            Sb.Append("var model = new " + tablename + "();\r");
+            sb.Append("public IList<" + tablename + "> GetList(" + conndetion + "int top = 10)");
+            sb.Append("\n{\n");
+            sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
 
             #region 字段
 
             string sql = "select ";
             StringBuilder sbBinder = new StringBuilder();
-            //sbBinder.Append("\r\t model=new " + tablename + "{");//begin
+            sbBinder.Append("\r\tlist.Add(new " + tablename + "(){"); //begin
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < totalCount; i++)
             {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+                var fliedname = dataList[i].ColumnName;
+                var fliedtype = dataList[i].DATA_TYPE;
 
                 #region 字段
 
-                for (int j = 0; j < arrayFlied.Count(); j++)
+                for (int j = 0; j < selectFieldList.Count(); j++)
                 {
-                    if (fliedname == arrayFlied[j].ToString())
+                    if (fliedname == selectFieldList[j].ToString())
                     {
                         sql += fliedname;
                         if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text")
                         {
-                            sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString();");
+                            sbBinder.Append("\r\t" + fliedname + "=dr[\"" + fliedname + "\"].ToString()");
                         }
                         else if (fliedtype.ToLower() == "bit")
                         {
-                            sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\";");
+                            sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\"");
                         }
                         else
                         {
-                            sbBinder.Append("\r\tmodel." + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
-                                            fliedname + "\"].ToString());");
+                            sbBinder.Append("\r\t" + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
+                                            fliedname + "\"].ToString())");
                         }
 
-                        if (j != arrayFlied.Count() - 1)
+                        if (j != selectFieldList.Count() - 1)
                         {
                             sql += ",";
+                            sbBinder.Append(",");
                         }
                     }
                 }
@@ -475,7 +715,7 @@ namespace MySqlWebManager.Controllers
                 #endregion
             }
 
-            //sbBinder.Append("};");//end
+            sbBinder.Append("});"); //end
 
             #endregion
 
@@ -484,24 +724,24 @@ namespace MySqlWebManager.Controllers
             #region 条件
 
             conndetion = "";
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < totalCount; i++)
             {
                 if (i == 0)
                 {
                     conndetion = " where ";
                 }
 
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+                var fliedname = dataList[i].ColumnName;
+                var fliedtype = dataList[i].DATA_TYPE;
 
                 #region 参数
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
+                for (int j = 0; j < queryConditionList.Count(); j++)
                 {
-                    if (fliedname == arrayIndexID[j].ToString())
+                    if (fliedname == queryConditionList[j])
                     {
                         conndetion += fliedname + "=@" + fliedname;
-                        if (j < arrayIndexID.Count() - 1)
+                        if (j < queryConditionList.Count() - 1)
                             conndetion += " and ";
                     }
                 }
@@ -524,7 +764,7 @@ namespace MySqlWebManager.Controllers
                 string strOrder = " order by ";
                 foreach (var o in _orders)
                 {
-                    var asc = Request.Query["ddl_" + o];
+                    var asc = Convert.ToString(Request.Query["ddl_" + o]);
                     strOrder += o + " " + asc + ",";
                 }
 
@@ -534,19 +774,19 @@ namespace MySqlWebManager.Controllers
 
             #endregion
 
-            sql += " limit 1";
-            Sb.Append("string sql=\"" + sql + "\";");
-            Sb.Append("\rMySqlParameter[] parameters = {");
+            sql += " limit @top";
+            sb.Append("string sql=\"" + sql + "\";");
+            sb.Append("\rMySqlParameter[] parameters = {");
 
             #region 条件
 
             conndetion = "";
             int c = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < totalCount; i++)
             {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
-                var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
+                var fliedname = dataList[i].ColumnName;
+                var fliedtype = dataList[i].DATA_TYPE;
+                var fliedlen = (dataList[i].MaxLen ?? "").ToString();
 
                 #region 参数
 
@@ -556,294 +796,43 @@ namespace MySqlWebManager.Controllers
                     len += "," + fliedlen;
                 }
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
+                for (int j = 0; j < queryConditionList.Count(); j++)
                 {
-                    if (fliedname == arrayIndexID[j])
+                    if (fliedname == queryConditionList[j].ToString())
                     {
-                        Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
-                        if (j < arrayIndexID.Count() - 1)
-                            Sb.Append(",");
-                        conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
+                        sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
+                        sb.Append(",");
+                        conndetion += "\rparameters[" + c++ + "].Value = " + queryConditionList[j].ToString() + ";";
                     }
                 }
 
                 #endregion
             }
 
-            //Sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
-            //conndetion += "\rparameters[" + c++ + "].Value = top;";
+            sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
+            conndetion += "\rparameters[" + c++ + "].Value = top;";
 
             #endregion
 
-            Sb.Append("\r\t\t\t\t};");
-            Sb.Append(conndetion);
-            Sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
-            Sb.Append("\r{");
-            Sb.Append("\t\rif (dr.Read())");
-            Sb.Append("\t\r{");
+            sb.Append("\r\t\t\t\t};");
+            sb.Append(conndetion);
+            sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
+            sb.Append("\r{");
+            sb.Append("\t\rwhile (dr.Read())");
+            sb.Append("\t\r{");
             //Sb.Append("\t\rlist.Add(ReaderBind(dr));");
 
             #region read bind
 
-            Sb.Append(sbBinder.ToString());
+            sb.Append(sbBinder.ToString());
 
             #endregion
 
-            Sb.Append("\t\r}");
-            Sb.Append("\r}");
-            Sb.Append("\rreturn model;");
-            Sb.Append("\n}\n");
-            //txt_content.Text += Sb.ToString();
-
-            return Content(Sb.ToString());
-        }
-
-        #endregion
-
-        #region 列表
-
-        public async Task<IActionResult> GetListAsync(GenerateCodeInputDto generateCodeInputDto)
-        {
-            #region
-
-            #region 定义变量
-            StringBuilder sb = new StringBuilder();
-            List<TableField> datList = new List<TableField>();
-            var totalCount = 0;
-            var tablename = generateCodeInputDto.TableName;
-            #endregion
-
-          
-            //获取数据库连接信息
-            ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(generateCodeInputDto.ConnectionId, true);
-           
-            if (connectionDto != null)
-            {
-                conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
-                _db.Ado.Connection.ConnectionString = conn;
-
-                string getTableFieldSql = string.Format(getflieds, tablename, connectionDto.Db);
-
-                datList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
-                totalCount = datList.Count();
-            }
-            //var dt = GetTable(string.Format(getflieds, tablename, txt_db.Text));
-
-            #endregion
-
-            #region 拼接代码字符串
-            ////得到条件
-            //var IndexID = Convert.ToString(Request.Query["cb2"]);
-            //var SelectFlied = Convert.ToString(Request.Query["cb3"]);
-            //if (string.IsNullOrEmpty(IndexID))
-            //{
-            //    //Page.RegisterStartupScript("alert", "<script>alert('请选择表条件!')</script>");
-            //    return new JavaScriptResult("alert('请选择表条件!')");
-            //}
-
-            //if (string.IsNullOrEmpty(SelectFlied))
-            //{
-            //    //Page.RegisterStartupScript("alert", "<script>alert('请选择表查询字段!')</script>");
-            //    return new JavaScriptResult("<script>alert('请选择表查询字段!')</script>");
-            //}
-
-            //
-
-            //string[] arrayIndexID = new string[] { };
-            //string[] arrayFlied = new string[] { };
-            //arrayIndexID = IndexID.Split(','); //tiaojian
-            //arrayFlied = SelectFlied.Split(',');
-
-            ////Sb.Append("\n\n\n=============Select===============\n");
-
-            //#region 条件
-
-            //string conndetion = "";
-            //for (int i = 0; i < count; i++)
-            //{
-            //    var fliedname = dt.Rows[i]["name"].ToString();
-            //    var fliedtype = dt.Rows[i]["type"].ToString();
-
-            //    #region 参数
-
-            //    for (int j = 0; j < arrayIndexID.Count(); j++)
-            //    {
-            //        if (fliedname == arrayIndexID[j].ToString())
-            //        {
-            //            conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
-            //        }
-            //    }
-
-            //    #endregion
-            //}
-
-            //#endregion
-
-            //sb.Append("public IList<" + tablename + "> GetList(" + conndetion + "int top = 10)");
-            //sb.Append("\n{\n");
-            //sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
-
-            //#region 字段
-
-            //string sql = "select ";
-            //StringBuilder sbBinder = new StringBuilder();
-            //sbBinder.Append("\r\tlist.Add(new " + tablename + "(){"); //begin
-
-            //for (int i = 0; i < count; i++)
-            //{
-            //    var fliedname = dt.Rows[i]["name"].ToString();
-            //    var fliedtype = dt.Rows[i]["type"].ToString();
-
-            //    #region 字段
-
-            //    for (int j = 0; j < arrayFlied.Count(); j++)
-            //    {
-            //        if (fliedname == arrayFlied[j].ToString())
-            //        {
-            //            sql += fliedname;
-            //            if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text")
-            //            {
-            //                sbBinder.Append("\r\t" + fliedname + "=dr[\"" + fliedname + "\"].ToString()");
-            //            }
-            //            else if (fliedtype.ToLower() == "bit")
-            //            {
-            //                sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\"");
-            //            }
-            //            else
-            //            {
-            //                sbBinder.Append("\r\t" + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
-            //                                fliedname + "\"].ToString())");
-            //            }
-
-            //            if (j != arrayFlied.Count() - 1)
-            //            {
-            //                sql += ",";
-            //                sbBinder.Append(",");
-            //            }
-            //        }
-            //    }
-
-            //    #endregion
-            //}
-
-            //sbBinder.Append("});"); //end
-
-            //#endregion
-
-            //sql += " from " + tablename;
-
-            //#region 条件
-
-            //conndetion = "";
-            //for (int i = 0; i < count; i++)
-            //{
-            //    if (i == 0)
-            //    {
-            //        conndetion = " where ";
-            //    }
-
-            //    var fliedname = dt.Rows[i]["name"].ToString();
-            //    var fliedtype = dt.Rows[i]["type"].ToString();
-
-            //    #region 参数
-
-            //    for (int j = 0; j < arrayIndexID.Count(); j++)
-            //    {
-            //        if (fliedname == arrayIndexID[j])
-            //        {
-            //            conndetion += fliedname + "=@" + fliedname;
-            //            if (j < arrayIndexID.Count() - 1)
-            //                conndetion += " and ";
-            //        }
-            //    }
-
-            //    //conndetion = conndetion.Trim(',');
-
-            //    #endregion
-            //}
-
-            //sql += conndetion;
-
-            //#endregion
-
-            //#region 排序
-
-            //var cb_order = Convert.ToString(Request.Query["cb_order"]);
-            //if (!string.IsNullOrWhiteSpace(cb_order))
-            //{
-            //    var _orders = cb_order.Split(',');
-            //    string strOrder = " order by ";
-            //    foreach (var o in _orders)
-            //    {
-            //        var asc = Convert.ToString(Request.Query["ddl_" + o]);
-            //        strOrder += o + " " + asc + ",";
-            //    }
-
-            //    strOrder = strOrder.TrimEnd(',');
-            //    sql += strOrder;
-            //}
-
-            //#endregion
-
-            //sql += " limit @top";
-            //sb.Append("string sql=\"" + sql + "\";");
-            //sb.Append("\rMySqlParameter[] parameters = {");
-
-            //#region 条件
-
-            //conndetion = "";
-            //int c = 0;
-            //for (int i = 0; i < count; i++)
-            //{
-            //    var fliedname = dt.Rows[i]["name"].ToString();
-            //    var fliedtype = dt.Rows[i]["type"].ToString();
-            //    var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
-
-            //    #region 参数
-
-            //    string len = "";
-            //    if (!string.IsNullOrWhiteSpace(fliedlen))
-            //    {
-            //        len += "," + fliedlen;
-            //    }
-
-            //    for (int j = 0; j < arrayIndexID.Count(); j++)
-            //    {
-            //        if (fliedname == arrayIndexID[j].ToString())
-            //        {
-            //            sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
-            //            sb.Append(",");
-            //            conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
-            //        }
-            //    }
-
-            //    #endregion
-            //}
-
-            //sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
-            //conndetion += "\rparameters[" + c++ + "].Value = top;";
-
-            //#endregion
-
-            //sb.Append("\r\t\t\t\t};");
-            //sb.Append(conndetion);
-            //sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
-            //sb.Append("\r{");
-            //sb.Append("\t\rwhile (dr.Read())");
-            //sb.Append("\t\r{");
-            ////Sb.Append("\t\rlist.Add(ReaderBind(dr));");
-
-            //#region read bind
-
-            //sb.Append(sbBinder.ToString());
-
-            //#endregion
-
-            //sb.Append("\t\r}");
-            //sb.Append("\r}");
-            //sb.Append("\rreturn list;");
-            //sb.Append("\n}\n");
-            ////txt_content.Text = Sb.ToString();
+            sb.Append("\t\r}");
+            sb.Append("\r}");
+            sb.Append("\rreturn list;");
+            sb.Append("\n}\n");
+            //txt_content.Text = Sb.ToString();
 
             #endregion
 
@@ -854,240 +843,251 @@ namespace MySqlWebManager.Controllers
 
         #region 分页
 
-        public IActionResult GetPageList()
-        {
-            #region
+        //public async Task<IActionResult> GetPageListAsync(GenerateCodeInputDto generateCodeInputDto)
+        //{
+          
+        //    #region 定义变量
+        //    StringBuilder sb = new StringBuilder();
+        //    List<TableField> dataList = new List<TableField>();
+        //    var totalCount = 0;
+        //    var tablename = generateCodeInputDto.TableName;
+        //    #endregion
 
-            StringBuilder Sb = new StringBuilder();
-            var tablename = ""; //lb_tables.SelectedItem.Text;
-            //var dt = GetTable(string.Format(getflieds, tablename, txt_db.Text));
-            DataTable dt = null;
-            var count = dt.Rows.Count;
+        //    //获取数据库连接信息
+        //    ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(generateCodeInputDto.ConnectionId, true);
 
-            //得到条件
-            var IndexID = Convert.ToString(Request.Query["cb2"]);
-            var SelectFlied = Convert.ToString(Request.Query["cb3"]);
-            if (string.IsNullOrEmpty(IndexID))
-            {
-                //Page.RegisterStartupScript("alert", "<script>alert('请选择表条件!')</script>");
-                return new JavaScriptResult("alert('请选择表条件!')");
-            }
+        //    if (connectionDto != null)
+        //    {
+        //        conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
+        //        _db.Ado.Connection.ConnectionString = conn;
 
-            if (string.IsNullOrEmpty(SelectFlied))
-            {
-                return new JavaScriptResult("alert('请选择表查询字段!')");
-            }
+        //        string getTableFieldSql = string.Format(getflieds, tablename, connectionDto.Db);
 
-            #endregion
+        //        dataList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+        //        totalCount = dataList.Count();
+        //    }
 
-            string[] arrayIndexID = new string[] { };
-            string[] arrayFlied = new string[] { };
-            arrayIndexID = IndexID.Split(','); //tiaojian
-            arrayFlied = SelectFlied.Split(',');
+        //    //得到条件
+        //    var queryConditionList = generateCodeInputDto.QueryConditionList;
+        //    var selectFieldList = generateCodeInputDto.QueryFieldList;
+        //    if (!queryConditionList.Any())
+        //    {
+        //        return new JavaScriptResult("alert('请选择表条件!')");
+        //    }
 
-            Sb.Append("\n\n\n//=============分页===============\n");
+        //    if (!selectFieldList.Any())
+        //    {
+        //        return new JavaScriptResult("alert('请选择表查询字段!')");
+        //    }
 
-            #region 条件
+        //    //string[] arrayIndexID = new string[] { };
+        //    //string[] arrayFlied = new string[] { };
+        //    //arrayIndexID = IndexID.Split(','); //tiaojian
+        //    //arrayFlied = SelectFlied.Split(',');
 
-            string conndetion = "";
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+        //    sb.Append("\n\n\n//=============分页===============\n");
 
-                #region 参数
+        //    #region 条件
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
-                {
-                    if (fliedname == arrayIndexID[j].ToString())
-                    {
-                        conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
-                    }
-                }
+        //    string conndetion = "";
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
-                #endregion
-            }
+        //        #region 参数
 
-            #endregion
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j].ToString())
+        //            {
+        //                conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
+        //            }
+        //        }
 
-            Sb.Append("public IList<" + tablename + "> GetList(out int count," + conndetion +
-                      "int pageindex = 1, int pagesize = 10)");
-            Sb.Append("\n{\n");
-            Sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
-            Sb.Append("int pagestart = (pageindex - 1)*pagesize;\r");
-            //Sb.Append("int pageend = pagestart + pagesize;\r");
+        //        #endregion
+        //    }
 
-            string where = "";
+        //    #endregion
 
-            for (int i = 0; i < count; i++)
-            {
-                if (i == 0)
-                {
-                    where = " where ";
-                }
+        //    sb.Append("public IList<" + tablename + "> GetList(out int count," + conndetion +
+        //              "int pageindex = 1, int pagesize = 10)");
+        //    sb.Append("\n{\n");
+        //    sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
+        //    sb.Append("int pagestart = (pageindex - 1)*pagesize;\r");
+        //    //Sb.Append("int pageend = pagestart + pagesize;\r");
 
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+        //    string where = "";
 
-                #region 参数
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        if (i == 0)
+        //        {
+        //            where = " where ";
+        //        }
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
-                {
-                    if (fliedname == arrayIndexID[j].ToString())
-                    {
-                        where += fliedname + "=@" + fliedname;
-                        if (j < arrayIndexID.Count() - 1)
-                        {
-                            where += " and ";
-                        }
-                    }
-                }
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
-                //where = where.Trim(',');
+        //        #region 参数
 
-                #endregion
-            }
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j].ToString())
+        //            {
+        //                where += fliedname + "=@" + fliedname;
+        //                if (j < queryConditionList.Count() - 1)
+        //                {
+        //                    where += " and ";
+        //                }
+        //            }
+        //        }
 
-            Sb.Append("string where = \"" + where + "\";\r");
-            StringBuilder sbBinder = new StringBuilder();
-            sbBinder.Append("\r\tlist.Add(new " + tablename + "(){"); //begin
+        //        //where = where.Trim(',');
 
-            #region 字段
+        //        #endregion
+        //    }
 
-            string sql = "select ";
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
+        //    sb.Append("string where = \"" + where + "\";\r");
+        //    StringBuilder sbBinder = new StringBuilder();
+        //    sbBinder.Append("\r\tlist.Add(new " + tablename + "(){"); //begin
 
-                #region 字段
+        //    #region 字段
 
-                for (int j = 0; j < arrayFlied.Count(); j++)
-                {
-                    if (fliedname == arrayFlied[j].ToString())
-                    {
-                        sql += fliedname;
-                        if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text")
-                        {
-                            sbBinder.Append("\r\t" + fliedname + "=dr[\"" + fliedname + "\"].ToString()");
-                        }
-                        else if (fliedtype.ToLower() == "bit")
-                        {
-                            sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\"");
-                        }
-                        else
-                        {
-                            sbBinder.Append("\r\t" + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
-                                            fliedname + "\"].ToString())");
-                        }
+        //    string sql = "select ";
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
-                        if (j != arrayFlied.Count() - 1)
-                        {
-                            sbBinder.Append(",");
-                            sql += ",";
-                        }
-                    }
-                }
+        //        #region 字段
 
-                #endregion
-            }
+        //        for (int j = 0; j < arrayFlied.Count(); j++)
+        //        {
+        //            if (fliedname == arrayFlied[j].ToString())
+        //            {
+        //                sql += fliedname;
+        //                if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text")
+        //                {
+        //                    sbBinder.Append("\r\t" + fliedname + "=dr[\"" + fliedname + "\"].ToString()");
+        //                }
+        //                else if (fliedtype.ToLower() == "bit")
+        //                {
+        //                    sbBinder.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString()==\"1\"");
+        //                }
+        //                else
+        //                {
+        //                    sbBinder.Append("\r\t" + fliedname + "=" + MysqlCommonHelper.GetFiledType(fliedtype) + ".Parse(dr[\"" +
+        //                                    fliedname + "\"].ToString())");
+        //                }
 
-            sbBinder.Append("});"); //end
+        //                if (j != arrayFlied.Count() - 1)
+        //                {
+        //                    sbBinder.Append(",");
+        //                    sql += ",";
+        //                }
+        //            }
+        //        }
 
-            #endregion
+        //        #endregion
+        //    }
 
-            sql += " from " + tablename;
+        //    sbBinder.Append("});"); //end
 
-            #region 条件
+        //    #endregion
 
-            sql += "\"+where+\"";
+        //    sql += " from " + tablename;
 
-            #endregion
+        //    #region 条件
 
-            #region 排序
+        //    sql += "\"+where+\"";
 
-            var cb_order = Convert.ToString(Request.Query["cb_order"]);
-            if (!string.IsNullOrWhiteSpace(cb_order))
-            {
-                var _orders = cb_order.Split(',');
-                string strOrder = " order by ";
-                foreach (var o in _orders)
-                {
-                    var asc = Request.Query["ddl_" + o];
-                    strOrder += o + " " + asc + ",";
-                }
+        //    #endregion
 
-                strOrder = strOrder.TrimEnd(',');
-                sql += strOrder;
-            }
+        //    #region 排序
 
-            #endregion
+        //    var cb_order = Convert.ToString(Request.Query["cb_order"]);
+        //    if (!string.IsNullOrWhiteSpace(cb_order))
+        //    {
+        //        var _orders = cb_order.Split(',');
+        //        string strOrder = " order by ";
+        //        foreach (var o in _orders)
+        //        {
+        //            var asc = Request.Query["ddl_" + o];
+        //            strOrder += o + " " + asc + ",";
+        //        }
 
-            //sql += " limit @top";
-            sql += " limit \"+pagestart+\", \"+pagesize";
-            Sb.Append("string sql=\"" + sql + ";");
-            Sb.Append("\rMySqlParameter[] parameters = {");
+        //        strOrder = strOrder.TrimEnd(',');
+        //        sql += strOrder;
+        //    }
 
-            #region 条件
+        //    #endregion
 
-            conndetion = "";
-            int c = 0;
-            for (int i = 0; i < count; i++)
-            {
-                var fliedname = dt.Rows[i]["name"].ToString();
-                var fliedtype = dt.Rows[i]["type"].ToString();
-                var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
+        //    //sql += " limit @top";
+        //    sql += " limit \"+pagestart+\", \"+pagesize";
+        //    sb.Append("string sql=\"" + sql + ";");
+        //    sb.Append("\rMySqlParameter[] parameters = {");
 
-                #region 参数
+        //    #region 条件
 
-                string len = "";
-                if (!string.IsNullOrWhiteSpace(fliedlen))
-                {
-                    len += "," + fliedlen;
-                }
+        //    conndetion = "";
+        //    int c = 0;
+        //    for (int i = 0; i < totalCount; i++)
+        //    {
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
+        //        var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
 
-                for (int j = 0; j < arrayIndexID.Count(); j++)
-                {
-                    if (fliedname == arrayIndexID[j].ToString())
-                    {
-                        Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
-                        if (j < arrayIndexID.Count() - 1)
-                            Sb.Append(",");
-                        conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
-                    }
-                }
+        //        #region 参数
 
-                #endregion
-            }
+        //        string len = "";
+        //        if (!string.IsNullOrWhiteSpace(fliedlen))
+        //        {
+        //            len += "," + fliedlen;
+        //        }
 
-            //Sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
-            //conndetion += "\rparameters[" + c++ + "].Value = top;";
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
+        //        {
+        //            if (fliedname == queryConditionList[j].ToString())
+        //            {
+        //                sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
+        //                if (j < queryConditionList.Count() - 1)
+        //                    sb.Append(",");
+        //                conndetion += "\rparameters[" + c++ + "].Value = " + queryConditionList[j].ToString() + ";";
+        //            }
+        //        }
 
-            #endregion
+        //        #endregion
+        //    }
 
-            Sb.Append("\r\t\t\t\t};");
-            Sb.Append(conndetion);
-            Sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
-            Sb.Append("\r{");
-            Sb.Append("\r\twhile (dr.Read())");
-            Sb.Append("\r\t{");
-            //Sb.Append("\r\tlist.Add(ReaderBind(dr));");
-            Sb.Append(sbBinder.ToString());
-            Sb.Append("\r\t}");
-            Sb.Append("\r}");
-            Sb.Append("\rcount=GetCount(where, parameters);");
-            Sb.Append("\rreturn list;");
-            Sb.Append("\n}\n");
-            //txt_content.Text += Sb.ToString();
-            GetCount();
-            return Content(Sb.ToString());
-        }
+        //    //Sb.Append("\r\t new MySqlParameter(\"@top\", MySqlDbType.Int32)");
+        //    //conndetion += "\rparameters[" + c++ + "].Value = top;";
+
+        //    #endregion
+
+        //    sb.Append("\r\t\t\t\t};");
+        //    sb.Append(conndetion);
+        //    sb.Append("\rusing (var dr = MysqlCommonHelper.ExecuteReader(connectionString, sql, parameters))");
+        //    sb.Append("\r{");
+        //    sb.Append("\r\twhile (dr.Read())");
+        //    sb.Append("\r\t{");
+        //    //Sb.Append("\r\tlist.Add(ReaderBind(dr));");
+        //    sb.Append(sbBinder.ToString());
+        //    sb.Append("\r\t}");
+        //    sb.Append("\r}");
+        //    sb.Append("\rcount=GetCount(where, parameters);");
+        //    sb.Append("\rreturn list;");
+        //    sb.Append("\n}\n");
+        //    //txt_content.Text += Sb.ToString();
+        //    GetCount();
+        //    return Content(sb.ToString());
+        //}
 
         #endregion
 
         #region 修改
 
-        //public IActionResult Update()
+        //public IActionResult Update(GenerateCodeInputDto generateCodeInputDto)
         //{
         //    #region
 
@@ -1097,8 +1097,8 @@ namespace MySqlWebManager.Controllers
         //    var count = dt.Rows.Count;
 
         //    //得到条件
-        //    var IndexID = Convert.ToString(Request.Query["cb2"]);
-        //    var SelectFlied = Convert.ToString(Request.Query["cb3"]);
+        //    var queryConditionList = generateCodeInputDto.QueryConditionList;
+        //   var selectFieldList = generateCodeInputDto.QueryFieldList;
         //    if (string.IsNullOrEmpty(IndexID))
         //    {
         //        //Page.RegisterStartupScript("alert", "<script></script>");
@@ -1126,16 +1126,16 @@ namespace MySqlWebManager.Controllers
 
         //    string conndetion = "";
 
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
         //        #region 参数
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j].ToString())
+        //            if (fliedname == queryConditionList[j].ToString())
         //            {
         //                conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
         //            }
@@ -1166,10 +1166,10 @@ namespace MySqlWebManager.Controllers
         //    #region 修改的字段
 
         //    string sql = "update  " + tablename + " set ";
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        //var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        //var fliedtype = dataList[i].DATA_TYPE;
 
         //        #region 字段
 
@@ -1193,24 +1193,24 @@ namespace MySqlWebManager.Controllers
         //    #region 条件
 
         //    conndetion = "";
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
         //        if (i == 0)
         //        {
         //            conndetion = " where ";
         //        }
 
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
         //        #region 参数
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j].ToString())
+        //            if (fliedname == queryConditionList[j].ToString())
         //            {
         //                conndetion += fliedname + "=@" + fliedname;
-        //                if (j < arrayIndexID.Count() - 1)
+        //                if (j < queryConditionList.Count() - 1)
         //                    conndetion += " and ";
         //            }
         //        }
@@ -1231,10 +1231,10 @@ namespace MySqlWebManager.Controllers
 
         //    conndetion = "";
         //    int c = 0;
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
         //        var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
 
         //        #region 参数
@@ -1245,13 +1245,13 @@ namespace MySqlWebManager.Controllers
         //            len += "," + fliedlen;
         //        }
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j].ToString())
+        //            if (fliedname == queryConditionList[j].ToString())
         //            {
         //                Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
         //                Sb.Append(",");
-        //                conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
+        //                conndetion += "\rparameters[" + c++ + "].Value = " + queryConditionList[j].ToString() + ";";
         //            }
         //        }
 
@@ -1290,7 +1290,7 @@ namespace MySqlWebManager.Controllers
 
         #region 删除
 
-        //public IActionResult Delete()
+        //public IActionResult Delete(GenerateCodeInputDto generateCodeInputDto)
         //{
         //    #region
 
@@ -1300,8 +1300,8 @@ namespace MySqlWebManager.Controllers
         //    var count = dt.Rows.Count;
 
         //    //得到条件
-        //    var IndexID = Convert.ToString(Request.Query["cb2"]);
-        //    var SelectFlied = Convert.ToString(Request.Query["cb3"]);
+        //    var queryConditionList = generateCodeInputDto.QueryConditionList;
+        //   var selectFieldList = generateCodeInputDto.QueryFieldList;
         //    if (string.IsNullOrEmpty(IndexID))
         //    {
         //        //Page.RegisterStartupScript("alert", "<script>alert('请选择删除条件!')</script>");
@@ -1322,16 +1322,16 @@ namespace MySqlWebManager.Controllers
 
         //    string conndetion = "";
 
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
         //        #region 参数
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j].ToString())
+        //            if (fliedname == queryConditionList[j].ToString())
         //            {
         //                conndetion += MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + ",";
         //            }
@@ -1353,24 +1353,24 @@ namespace MySqlWebManager.Controllers
         //    #region 条件
 
         //    conndetion = "";
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
         //        if (i == 0)
         //        {
         //            conndetion = " where ";
         //        }
 
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
 
         //        #region 参数
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j].ToString())
+        //            if (fliedname == queryConditionList[j].ToString())
         //            {
         //                conndetion += fliedname + "=@" + fliedname;
-        //                if (j < arrayIndexID.Count() - 1)
+        //                if (j < queryConditionList.Count() - 1)
         //                    conndetion += " and ";
         //            }
         //        }
@@ -1391,10 +1391,10 @@ namespace MySqlWebManager.Controllers
 
         //    conndetion = "";
         //    int c = 0;
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
         //        var fliedlen = (dt.Rows[i]["len"] ?? "").ToString();
 
         //        #region 参数
@@ -1405,13 +1405,13 @@ namespace MySqlWebManager.Controllers
         //            len += "," + fliedlen;
         //        }
 
-        //        for (int j = 0; j < arrayIndexID.Count(); j++)
+        //        for (int j = 0; j < queryConditionList.Count(); j++)
         //        {
-        //            if (fliedname == arrayIndexID[j])
+        //            if (fliedname == queryConditionList[j])
         //            {
         //                Sb.Append("\r\t new MySqlParameter(\"@" + fliedname + "\", " + MysqlCommonHelper.GetSqlType(fliedtype) + len + ")");
         //                Sb.Append(",");
-        //                conndetion += "\rparameters[" + c++ + "].Value = " + arrayIndexID[j].ToString() + ";";
+        //                conndetion += "\rparameters[" + c++ + "].Value = " + queryConditionList[j].ToString() + ";";
         //            }
         //        }
 
@@ -1436,7 +1436,7 @@ namespace MySqlWebManager.Controllers
 
         #region count
 
-        public string GetCount()
+        public string GetCount(GenerateCodeInputDto generateCodeInputDto)
         {
             var tablename = ""; //lb_tables.SelectedItem.Text;
             string str = "\rpublic int GetCount(string where ,MySqlParameter[] parameters=null)" +
@@ -1453,7 +1453,7 @@ namespace MySqlWebManager.Controllers
 
         #region Bind
 
-        //void ReaderBind()
+        //void ReaderBind(GenerateCodeInputDto generateCodeInputDto)
         //{
         //    StringBuilder Sb = new StringBuilder();
         //    var tablename = "";// lb_tables.SelectedItem.Text;
@@ -1463,10 +1463,10 @@ namespace MySqlWebManager.Controllers
         //    Sb.Append("\r{");
         //    Sb.Append("\r\t//需保证字段不能为null");
         //    Sb.Append("\r\tvar model = new " + tablename + "();");
-        //    for (int i = 0; i < count; i++)
+        //    for (int i = 0; i < totalCount; i++)
         //    {
-        //        var fliedname = dt.Rows[i]["name"].ToString();
-        //        var fliedtype = dt.Rows[i]["type"].ToString();
+        //        var fliedname = dataList[i].ColumnName;
+        //        var fliedtype = dataList[i].DATA_TYPE;
         //        if (fliedtype.ToLower() == "varchar" || fliedtype.ToLower() == "text" || fliedtype.ToLower() == "char")
         //        {
         //            Sb.Append("\r\tmodel." + fliedname + "=dr[\"" + fliedname + "\"].ToString();");
@@ -1528,8 +1528,8 @@ namespace MySqlWebManager.Controllers
             sb.Append("\r{");
             for (int i = 0; i < totalCount; i++)
             {
-                //var fliedname = dt.Rows[i]["name"].ToString();
-                //var fliedtype = dt.Rows[i]["type"].ToString();
+                //var fliedname = dataList[i].ColumnName;
+                //var fliedtype = dataList[i].DATA_TYPE;
                 //var info = dt.Rows[i]["info"].ToString();
                 var fliedname = dataList[i].ColumnName;
                 var fliedtype = dataList[i].DATA_TYPE;
@@ -1554,45 +1554,54 @@ namespace MySqlWebManager.Controllers
 
         #endregion
 
+        /// <summary>
+        /// 生成c#代码
+        /// </summary>
+        /// <param name="generateCodeInputDto"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> GenerateCharpCodeAsync([FromBody] GenerateCodeInputDto generateCodeInputDto)
         {
-            #region 变量
-            #endregion
+            StringBuilder codeBuilder=new StringBuilder();
 
             if (string.IsNullOrEmpty(generateCodeInputDto.TableName))
             {
                 return new JavaScriptResult("alert('请选择表!')");
             }
-            var flag = false;
-            if (generateCodeInputDto.MethodList.Any(c=>c.CheckName== "cb_list" && c.IsChecked==true))
+
+            if (generateCodeInputDto.MethodList == null || !generateCodeInputDto.MethodList.Any())
             {
-                return await GetListAsync(generateCodeInputDto);
+                return new JavaScriptResult("alert('未勾选任何一个方法名称!')");
+            }
+
+            if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_list" && c.IsChecked == true))
+            {
+                //return await GetListAsync(generateCodeInputDto);
+                codeBuilder.Append(((ContentResult)await GetListAsync(generateCodeInputDto)).Content ?? "");
             }
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_pagelist" && c.IsChecked == true))
             {
-                GetPageList();
+                //GetPageList();
+                //codeBuilder.Append(((ContentResult)await GetListAsync(generateCodeInputDto)).Content ?? "");
             }
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_update" && c.IsChecked == true))
             {
-               // Update();
+                //Update();
             }
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_delete" && c.IsChecked == true))
             {
                 //Delete();
             }
-
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_add" && c.IsChecked == true))
             {
-              // Insert();
+                // Insert();
             }
-
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_getmodel" && c.IsChecked == true))
             {
-                GetModel();
+                //GetModel();
             }
-            return new JavaScriptResult("alert('未勾选任何一个方法名称!')");
             //ReaderBind();
+            return Content("");
         }
 
         [HttpPost]
@@ -1619,7 +1628,6 @@ namespace MySqlWebManager.Controllers
             }
             else
             {
-
             }
             //string sql = string.Format(gettables, txt_db);
             //var dt = GetTable(sql);
@@ -1659,7 +1667,7 @@ namespace MySqlWebManager.Controllers
             //        sb.Append("\r{");
             //        sb.Append("\r\tpublic class " + tablename);
             //        sb.Append("\r\t{");
-            //        for (int j = 0; j < count; j++)
+            //        for (int j = 0; j < totalCount; j++)
             //        {
             //            var fliedname = dt1.Rows[j]["name"].ToString();
             //            var fliedtype = dt1.Rows[j]["type"].ToString();

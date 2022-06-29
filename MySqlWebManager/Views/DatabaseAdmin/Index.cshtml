@@ -1,4 +1,11 @@
 ﻿@{
+
+
+
+
+
+
+
     Layout = null;
 }
 
@@ -21,11 +28,52 @@
         body {
             font-size: 12px;
         }
+
+        .CodeMirror {
+            text-align: left !important;
+        }
+
+
+        /*下拉显示不全问题*/
+        .layui-table-cell,
+        .layui-table-tool-panel li {
+            overflow: visible !important;
+        }
+
+        .layui-form-select .layui-input {
+            height: 30px;
+        }
+
+        .layui-table-box {
+            overflow: visible !important;
+        }
+
+        .layui-table-body {
+            overflow: visible !important;
+        }
     </style>
     <link href="@Url.Content("~/lib/layui/dist/css/layui.css")" rel="stylesheet">
+    <link href="@Url.Content("~/lib/codemirror/codemirror.css")" rel="stylesheet" />
     <script src="@Url.Content("~/lib/jquery/dist/jquery.js")" type="text/javascript"></script>
     <script src="@Url.Content("~/lib/axios/dist/axios.js")" type="text/javascript"></script>
     <script src="@Url.Content("~/lib/layui/dist/layui.js")"></script>
+
+    <!-- 引入CodeMirror核心文件 -->
+    <script src="@Url.Content("~/lib/codemirror/codemirror.js")"></script>
+
+    <!-- CodeMirror支持不同语言，根据需要引入JS文件 -->
+    <!-- 因为HTML混合语言依赖Javascript、XML、CSS语言支持，所以都要引入 -->
+    @* <script type="text/javascript" src="codemirror/mode/javascript/javascript.js"></script>
+        <script type="text/javascript" src="codemirror/mode/xml/xml.js"></script>
+        <script type="text/javascript" src="codemirror/mode/css/css.js"></script>
+        <script type="text/javascript" src="codemirror/mode/htmlmixed/htmlmixed.js"></script>*@
+
+    <script src="@Url.Content("~/lib/codemirror/mode/clike/clike.js")"></script>
+
+    <!-- 下面分别为显示行数、括号匹配和全屏插件 -->
+    <script type="text/javascript" src="@Url.Content("~/lib/codemirror/addon/selection/active-line.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/lib/codemirror/addon/edit/matchbrackets.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/lib/codemirror/addon/display/fullscreen.js")"></script>
 
 </head>
 
@@ -43,8 +91,7 @@
             <div class="layui-inline">
                 <label class="layui-form-label">database:</label>
                 <div class="layui-input-inline">
-                    <input type="text" name="txt_db" id="txt_db" value="bbsdb" lay-verify="required"
-                        class="layui-input">
+                    <input type="text" name="txt_db" id="txt_db" value="blog" lay-verify="required" class="layui-input">
                 </div>
             </div>
             <div class="layui-inline">
@@ -68,290 +115,283 @@
                 </div>
             </div>
         </div>
-    <hr class="layui-border-green">
-    <table border="1" cellspacing="0" cellpadding="0" width="1500px" id="test">
-        <tr>
-            <td valign="top" width="200px">
-                Tables:<br />
-                <select size="20" name="select_tables" id="select_tables" lay-ignore lay-verify="required" lay-search="" style="height:321px;width:200px;">
-                </select>
-            </td>
-            <td valign="top" width="30%">
-                <br />
-                <br />
-                <br />
-                @*<div class="layui-form-item">
-                    <label class="layui-form-label">复选框</label>
-                    <div class="layui-input-block">
-                    <input type="checkbox" name="like[write]" title="写作">
-                    <input type="checkbox" name="like[read]" title="阅读" checked="">
-                    <input type="checkbox" name="like[game]" title="游戏">
+        <hr class="layui-border-green">
+        <table border="1" cellspacing="0" cellpadding="0" width="1500px" id="test">
+            <tr>
+                <td valign="top" width="200px">
+                    Tables:<br />
+                    <select size="20" name="select_tables" id="select_tables" lay-ignore lay-verify="required"
+                        lay-search="" style="height:321px;width:200px;">
+                    </select>
+                </td>
+                <td valign="top" width="30%">
+                    <br />
+                    <br />
+                    <br />
+                    <div class="layui-form-item" id="codemethodchk" pane="">
+                        <label class="layui-form-label" style="width:auto">生成代码包含</label>
+                        <div class="layui-input-block">
+                            <input type="checkbox" name="cb_add" lay-skin="primary" title="增加" id="cb_add"
+                                checked="checked">
+                            <br>
+                            <input type="checkbox" name="cb_delete" lay-skin="primary" title="删除" id="cb_delete"
+                                checked="checked">
+                            <br>
+                            <input type="checkbox" name="cb_update" lay-skin="primary" title="修改" id="cb_update"
+                                checked="checked">
+                            <br>
+                            <input type="checkbox" name="cb_getmodel" lay-skin="primary" title="单条" id="cb_getmodel"
+                                checked="checked">
+                            <br>
+                            <input type="checkbox" name="cb_list" lay-skin="primary" title="列表" id="cb_list"
+                                checked="checked">
+                            <br>
+                            <input type="checkbox" name="cb_pagelist" lay-skin="primary" title="分页" id="cb_pagelist"
+                                checked="checked">
+                        </div>
                     </div>
-                    </div>*@
 
-                <div class="layui-form-item" id="codemethodchk" pane="">
-                    <label class="layui-form-label" style="width:auto">生成代码包含</label>
-                    <div class="layui-input-block">
-                        <input type="checkbox" name="cb_add" lay-skin="primary" title="增加" id="cb_add"
-                            checked="checked">
+                    @* <input id="cb_add" type="checkbox" name="cb_add" checked="checked">
+                        <label for="cb_add">增加</label>
                         <br>
-                        <input type="checkbox" name="cb_delete" lay-skin="primary" title="删除" id="cb_delete"
-                            checked="checked">
+                        <input id="cb_delete" type="checkbox" name="cb_delete" checked="checked">
+                        <label for="cb_delete">删除</label>
                         <br>
-                        <input type="checkbox" name="cb_update" lay-skin="primary" title="修改" id="cb_update"
-                            checked="checked">
+                        <input id="cb_update" type="checkbox" name="cb_update" checked="checked">
+                        <label for="cb_update">修改</label>
                         <br>
-                        <input type="checkbox" name="cb_getmodel" lay-skin="primary" title="单条" id="cb_getmodel"
-                            checked="checked">
+                        <input id="cb_getmodel" type="checkbox" name="cb_getmodel" checked="checked">
+                        <label for="cb_getmodel">单条</label>
                         <br>
-                        <input type="checkbox" name="cb_list" lay-skin="primary" title="列表" id="cb_list"
-                            checked="checked">
+                        <input id="cb_list" type="checkbox" name="cb_list" checked="checked">
+                        <label for="cb_list">列表</label>
                         <br>
-                        <input type="checkbox" name="cb_pagelist" lay-skin="primary" title="分页" id="cb_pagelist"
-                            checked="checked">
+                        <input id="cb_pagelist" type="checkbox" name="cb_pagelist" checked="checked">
+                        <label for="cb_pagelist">分页</label>*@
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <button name="Button3" type="button" value="生成C#语句" class="layui-btn" id="btnGenerateCharpCode"
+                        style="">生成C#语句Button3</button>
+
+                    <button name="Button4" type="button" value="生成实体" class="layui-btn"
+                        id="btnGenerateEntity">生成实体Button4</button>
+                    <br />
+                    <br />
+
+                    <span class="layui-breadcrumb" lay-separator="|">
+                        <a href="javascript:;" onclick="$('#div_pl').slideDown()">批量生成实体</a>
+                    </span>
+
+                    <div class="layui-card" id="div_pl" style="display:none;">
+                        @*<div class="layui-card-header">卡片面板</div>*@
+                        <div class="layui-card-body">
+                            命名空间:<input name="txt_namespace" type="text" class="layui-input"
+                                value="CiWong.cw_workcategory_listenning_ch.Entities" id="txt_namespace"
+                                style="width:250px;">
+                            <br />
+                            存放路径:<input name="txt_file" type="text" class="layui-input" value="d:\modelcode\"
+                                id="txt_file" style="width:250px;">
+                            <br />
+                            <button type="button" name="Button2" value="批量生成" class="layui-btn layui-btn-normal"
+                                id="btnBatchGeneration">批量生成Button2</button>
+                        </div>
                     </div>
-                </div>
 
-                @* <input id="cb_add" type="checkbox" name="cb_add" checked="checked">
-                    <label for="cb_add">增加</label>
-                    <br>
-                    <input id="cb_delete" type="checkbox" name="cb_delete" checked="checked">
-                    <label for="cb_delete">删除</label>
-                    <br>
-                    <input id="cb_update" type="checkbox" name="cb_update" checked="checked">
-                    <label for="cb_update">修改</label>
-                    <br>
-                    <input id="cb_getmodel" type="checkbox" name="cb_getmodel" checked="checked">
-                    <label for="cb_getmodel">单条</label>
-                    <br>
-                    <input id="cb_list" type="checkbox" name="cb_list" checked="checked">
-                    <label for="cb_list">列表</label>
-                    <br>
-                    <input id="cb_pagelist" type="checkbox" name="cb_pagelist" checked="checked">
-                    <label for="cb_pagelist">分页</label>*@
-                <br />
-                <br />
-                <br />
-                <br />
-                <br />
-                <br />
-                <button name="Button3" type="button" value="生成C#语句" class="layui-btn" id="btnGenerateCharpCode"
-                    style="">生成C#语句Button3</button>
-
-                <button name="Button4" type="button" value="生成实体" class="layui-btn"
-                    id="btnGenerateEntity">生成实体Button4</button>
-                <br />
-                <br />
-
-                <span class="layui-breadcrumb" lay-separator="|">
-                    <a href="javascript:;" onclick="$('#div_pl').slideDown()">批量生成实体</a>
-                </span>
-
-                <div class="layui-card" id="div_pl" style="display:none;">
-                    @*<div class="layui-card-header">卡片面板</div>*@
-                    <div class="layui-card-body">
-                        命名空间:<input name="txt_namespace" type="text" class="layui-input"
-                            value="CiWong.cw_workcategory_listenning_ch.Entities" id="txt_namespace"
-                            style="width:250px;">
+                    @* <div style="display:none;" id="div_pl">
+                        命名空间:<input name="txt_namespace" type="text" value="CiWong.cw_workcategory_listenning_ch.Entities"
+                        id="txt_namespace" style="width:250px;">
                         <br />
-                        存放路径:<input name="txt_file" type="text" class="layui-input" value="d:\modelcode\" id="txt_file"
-                            style="width:250px;">
+                        存放路径:<input name="txt_file" type="text" value="d:\modelcode\" id="txt_file" style="width:250px;">
                         <br />
                         <button type="button" name="Button2" value="批量生成" class="layui-btn layui-btn-normal"
-                            id="btnBatchGeneration">批量生成Button2</button>
-                    </div>
-                </div>
-
-                @* <div style="display:none;" id="div_pl">
-                    命名空间:<input name="txt_namespace" type="text" value="CiWong.cw_workcategory_listenning_ch.Entities"
-                    id="txt_namespace" style="width:250px;">
+                        id="btnBatchGenerate">批量生成Button2</button>
+                        </div>*@
                     <br />
-                    存放路径:<input name="txt_file" type="text" value="d:\modelcode\" id="txt_file" style="width:250px;">
-                    <br />
-                    <button type="button" name="Button2" value="批量生成" class="layui-btn layui-btn-normal"
-                    id="btnBatchGenerate">批量生成Button2</button>
-                    </div>*@
-                <br />
-            </td>
-            <td valign="top">
-                Fileds:
-                @* <table cellspacing="0" rules="all" border="1" id="gv_fileds" style="border-collapse:collapse;">
-                    <tbody>
-                    <tr>
-                    <th scope="col">排序</th>
-                    <th scope="col">查询条件</th>
-                    <th scope="col">字段<input type="checkbox" onclick="check(this.checked)" checked=""></th>
-                    <th scope="col">字段</th>
-                    <th scope="col">类型</th>
-                    <th scope="col">长度</th>
-                    <th scope="col">备注</th>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="id" checked="">
-                    <select name="ddl_id">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="id">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="id" checked="checked" style="float: right">
-                    </td>
-                    <td>id</td>
-                    <td>int</td>
-                    <td>&nbsp;</td>
-                    <td>文章ID</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="type_id">
-                    <select name="ddl_type_id">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="type_id">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="type_id" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>type_id</td>
-                    <td>int</td>
-                    <td>&nbsp;</td>
-                    <td>文章分类ID</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="article_name">
-                    <select name="ddl_article_name">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="article_name">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="article_name" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>article_name</td>
-                    <td>varchar</td>
-                    <td>50</td>
-                    <td>文章名称</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="article_desc">
-                    <select name="ddl_article_desc">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="article_desc">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="article_desc" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>article_desc</td>
-                    <td>varchar</td>
-                    <td>100</td>
-                    <td>文章内容</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="create_by">
-                    <select name="ddl_create_by">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="create_by">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="create_by" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>create_by</td>
-                    <td>varchar</td>
-                    <td>20</td>
-                    <td>创建人</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="create_time">
-                    <select name="ddl_create_time">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="create_time">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="create_time" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>create_time</td>
-                    <td>timestamp</td>
-                    <td>&nbsp;</td>
-                    <td>创建时间</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="update_by">
-                    <select name="ddl_update_by">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="update_by">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="update_by" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>update_by</td>
-                    <td>varchar</td>
-                    <td>20</td>
-                    <td>修改人</td>
-                    </tr>
-                    <tr>
-                    <td>
-                    <input type="checkbox" name="cb_order" value="update_time">
-                    <select name="ddl_update_time">
-                    <option value="desc">降序</option>
-                    <option value="asc">升序</option>
-                    </select>
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb2" value="update_time">
-                    </td>
-                    <td>
-                    <input type="checkbox" name="cb3" value="update_time" checked="checked"
-                    style="float: right">
-                    </td>
-                    <td>update_time</td>
-                    <td>timestamp</td>
-                    <td>&nbsp;</td>
-                    <td>修改时间</td>
-                    </tr>
-                    </tbody>
-                    </table>*@
-                <table cellspacing="0" rules="all" border="1" id="tablefields" style="border-collapse:collapse;">
-                </table>
-            </td>
-        </tr>
-    </table>
+                </td>
+                <td valign="top">
+                    Fileds:
+                    @* <table cellspacing="0" rules="all" border="1" id="gv_fileds" style="border-collapse:collapse;">
+                        <tbody>
+                        <tr>
+                        <th scope="col">排序</th>
+                        <th scope="col">查询条件</th>
+                        <th scope="col">字段<input type="checkbox" onclick="check(this.checked)" checked=""></th>
+                        <th scope="col">字段</th>
+                        <th scope="col">类型</th>
+                        <th scope="col">长度</th>
+                        <th scope="col">备注</th>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="id" checked="">
+                        <select name="ddl_id">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="id">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="id" checked="checked" style="float: right">
+                        </td>
+                        <td>id</td>
+                        <td>int</td>
+                        <td>&nbsp;</td>
+                        <td>文章ID</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="type_id">
+                        <select name="ddl_type_id">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="type_id">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="type_id" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>type_id</td>
+                        <td>int</td>
+                        <td>&nbsp;</td>
+                        <td>文章分类ID</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="article_name">
+                        <select name="ddl_article_name">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="article_name">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="article_name" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>article_name</td>
+                        <td>varchar</td>
+                        <td>50</td>
+                        <td>文章名称</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="article_desc">
+                        <select name="ddl_article_desc">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="article_desc">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="article_desc" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>article_desc</td>
+                        <td>varchar</td>
+                        <td>100</td>
+                        <td>文章内容</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="create_by">
+                        <select name="ddl_create_by">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="create_by">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="create_by" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>create_by</td>
+                        <td>varchar</td>
+                        <td>20</td>
+                        <td>创建人</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="create_time">
+                        <select name="ddl_create_time">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="create_time">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="create_time" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>create_time</td>
+                        <td>timestamp</td>
+                        <td>&nbsp;</td>
+                        <td>创建时间</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="update_by">
+                        <select name="ddl_update_by">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="update_by">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="update_by" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>update_by</td>
+                        <td>varchar</td>
+                        <td>20</td>
+                        <td>修改人</td>
+                        </tr>
+                        <tr>
+                        <td>
+                        <input type="checkbox" name="cb_order" value="update_time">
+                        <select name="ddl_update_time">
+                        <option value="desc">降序</option>
+                        <option value="asc">升序</option>
+                        </select>
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb2" value="update_time">
+                        </td>
+                        <td>
+                        <input type="checkbox" name="cb3" value="update_time" checked="checked"
+                        style="float: right">
+                        </td>
+                        <td>update_time</td>
+                        <td>timestamp</td>
+                        <td>&nbsp;</td>
+                        <td>修改时间</td>
+                        </tr>
+                        </tbody>
+                        </table>*@
+                    <table cellspacing="0" rules="all" border="1" id="tablefields" lay-filter="tablefieldList"
+                        style="border-collapse:collapse;">
+                    </table>
+                </td>
+            </tr>
+        </table>
     </form>
     <table>
         <tr>
@@ -424,8 +464,10 @@
 
         //全选
         function check(checked) {
-            $("input[name=queryField]").attr("checked", checked);
+            $("input[name='queryField']").attr("checked", checked);
         }
+
+
 
         //复制生成的文本
         function copytext() {
@@ -487,7 +529,7 @@
             //                 }
             //    });
 
-            layui.use(['laydate', 'laypage', 'layer', 'table','form'], function () {
+            layui.use(['laydate', 'laypage', 'layer', 'table', 'form'], function () {
 
                 var trIndex = 0;
                 var laydate = layui.laydate //日期
@@ -530,8 +572,8 @@
                         [
                             {
                                 width: 200, title: '排序', fixed: "left", templet: function (d) {
-                                    res = '<input type="checkbox" name="cb_order" value="' + d.columnName + '" ' + ((trIndex++ == 0) ? "checked" : "") + '/>' +
-                                        '<select name="ddl_' + d.columnName + '">' +
+                                    // res = '<input type="checkbox" lay-skin="primary"  name="queryOrder" value="' + d.columnName + '" ' + ((trIndex++ == 0) ? "checked" : "") + '/>' +
+                                    res = '<select lay-filter="type" lay-search="true" name="ddl_' + d.columnName + '">' +
                                         '<option value="desc">降序</option>' +
                                         '<option value="asc">升序</option>' +
                                         '</select>';
@@ -539,35 +581,75 @@
                                 }
                             },
                             {
-                                width: 100, title: '查询条件', templet: function (d) {
-                                    res = '<input type="checkbox" name="queryCondition" value="' + d.columnName + '" />';
+                                width: 100, title: '查询条件', align: 'center', templet: function (d) {
+                                    res = '<input type="checkbox" lay-skin="primary" name="queryCondition" value="' + d.columnName + '" />';
                                     return res;
                                 }
                             },
                             {
-                                width: 100, title: '字段勾选<input type="checkbox"  onclick="check(this.checked)" checked/>', templet: function (d) {
-                                    res = '<input type="checkbox" name="queryField" value="' + d.columnName + '" checked="checked" style="float: right" />';
-                                    return res;
-                                }
+                                type: 'checkbox', title: '字段勾选', width: 100
+                                //width: 100, title: '字段勾选<input type="checkbox"  lay-skin="primary" id="checkallfield" checked/>', templet: function (d) {
+                                //    res = '<input type="checkbox"  lay-skin="primary" name="queryField" value="' + d.columnName + '"  checked="checked" style="float: right" />';
+                                //    return res;
+                                //}
                             },
                             { field: 'columnName', width: 150, title: '字段名称' },
-                            { field: 'datA_TYPE', title: '字段类型', minWidth: 150 },
-                            { field: 'maxLen', width: 80, title: '字段长度', sort: true },
+                            { field: 'datA_TYPE', width: 150, title: '字段类型' },
+                            { field: 'maxLen', width: 150, title: '字段长度', sort: true },
                             { field: 'comment', width: 200, title: '字段说明', sort: true },
-                            { field: 'iS_NULL', width: 80, title: '是否能为NULL' },
+                            { field: 'iS_NULL', width: 150, title: '是否能为NULL' },
                             { field: 'auto', width: 135, title: '其他信息', sort: true }
                         ]
-                    ]
+                    ],
+                    done: function (obj) {
+
+                        $(".layui-table-header .laytable-cell-checkbox span").remove()
+                        $(".layui-table-header .laytable-cell-checkbox").prepend("<span>Select字段</span>");
+                        layer.closeAll();
+                    }
                 });
 
+
                 //点击全选, 勾选
-                form.on('checkbox(allInputUpdate)', function (data) {
-                    let child = $(".checkInfoInSlot");
-                    child.each(function (index, item) {
-                        item.checked = data.elem.checked;
-                    });
-                    form.render('checkbox');
-                });
+                let ctrCheckArr = [];
+                var id_checkedArr = [];//所有选中的id
+                //form.on('checkbox(tablefieldList)', function (obj) {
+                //    id_checkedArr.length = 0;
+                //    var is_all = obj.type == 'all' ? true : false;//是否全选
+                //    var is_checked = obj.checked;//是否选中
+                //    if (is_all)//全选
+                //    {
+                //        if (is_checked) id_checkedArr = id_lists;
+                //        if (!is_checked) id_checkedArr = [];
+                //    }
+                //    if (!is_all)//单选的时候  push或pop
+                //    {
+                //        var this_PKID = obj.data.PKID;
+                //        if (!is_checked) {
+                //            id_checkedArr.splice($.inArray(this_PKID, id_checkedArr), 1);
+                //        }
+                //        if (is_checked) {
+                //            var index = $.inArray(this_PKID, id_checkedArr);
+                //            if (index == -1) {
+                //                id_checkedArr.push(this_PKID);
+                //            }
+                //        }
+                //    }
+                //    //let child = $(".checkInfoInSlot");
+                //    //child.each(function (index, item) {
+                //    //    item.checked = data.elem.checked;
+                //    //});
+                //    form.render('checkbox');
+
+
+                //    //ctrCheckArr.length = 0;
+                //    //let checkStatus = table.checkStatus('tablefieldList')
+                //    //    ,data = checkStatus.data; //获取选中的数据
+                //    //for (let i = 0; i < data.length; i++) {
+                //    //    ctrCheckArr.push(data[i].slot)
+                //    //}
+                //    //console.log(ctrCheckArr);
+                //});
             });
         }
 
@@ -579,10 +661,25 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                data:JSON.stringify(obj)
+                data: JSON.stringify(obj)
             }).then(function (res) {
                 var coderesult = res.data
-                alert(coderesult);
+                //alert(coderesult);
+
+                //在线代码编辑器
+                var CodeMirrorEditor = CodeMirror.fromTextArea($("#txt_content").get(0), {
+                    indentUnit: 4,         // 缩进单位为4
+                    styleActiveLine: true, // 当前行背景高亮
+                    matchBrackets: true,   // 括号匹配
+                    //lineWrapping: true,    // 自动换行
+                    lineNumbers: true,
+                    mode: "text/x-csharp"
+                    //mode: 'htmlmixed',     // HMTL混合模式
+                    //viewportMargin: Infinity
+                });
+
+                $("#txt_content").text(coderesult);
+
             });
         }
 
@@ -608,8 +705,11 @@
 
             $("#btnGenerateCharpCode").click(function () {
                 var metnodArray = [];
-                var queryCondition_chk_val =[];//定义一个数组
-                var queryField_chk_val =[];
+                var queryCondition_chk_val = [];//定义一个数组
+                var queryField_chk_val = [];
+                var queryOrderArray = [];
+
+
                 $("#codemethodchk input[type='checkbox']").each(function (index, item) {
                     var obj = {}
                     //obj.methoddic = {};
@@ -618,24 +718,27 @@
                     metnodArray.push(obj);
                 });
 
-              
-	            $('input[name="queryCondition"]:checked').each(function(){
-		            queryCondition_chk_val.push($(this).val());//将选中的值添加到数组中
-	            });
+                $('input[name="queryOrder"]:checked').each(function () {
+                    queryOrderArray.push($(this).val());//将选中的值添加到数组中
+                });
 
-                  $('input[name="queryField"]:checked').each(function(){//遍历每一个名字为nodes的复选框，其中选中的执行函数
-		            queryField_chk_val.push($(this).val());//将选中的值添加到数组chk_value中
-	            });
-  
+                $('input[name="queryCondition"]:checked').each(function () {
+                    queryCondition_chk_val.push($(this).val());
+                });
+
+                $('input[name="queryField"]:checked').each(function () {
+                    queryField_chk_val.push($(this).val());
+                });
+
 
                 //console.log(objArray);
                 //console.log(JSON.stringify(objArray));
-                
+
                 var ov = $("#select_tables").find('option:selected').val();//获取选中的option的value值
                 var connid = $("#connectionId").val(); //获取连接字符串ID
 
                 if (ov != null && ov != "") {
-                    var paramsdata = { TableName: ov, ConnectionId: connid, MethodList: metnodArray,QueryConditionList:queryCondition_chk_val,QueryFieldList:queryField_chk_val };
+                    var paramsdata = { TableName: ov, ConnectionId: connid, MethodList: metnodArray, QueryConditionList: queryCondition_chk_val, QueryFieldList: queryField_chk_val, QueryOrderList: queryOrderArray };
 
                     console.log(JSON.stringify(paramsdata));
                     //console.log(JSON.parse(JSON.stringify(paramsdata)));
@@ -645,6 +748,7 @@
                     alert("请选中一张表")
                 }
             });
+
         });
     </script>
     <script>
@@ -711,59 +815,6 @@
         });
     </script>
     <script>
-        //layui.use('table',function () {
-        //        var table = layui.table;
-        //        table.render({
-        //            elem: '#test',
-        //            url: '/static/json/table/user.json',
-        //            page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
-        //                layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'] //自定义分页布局
-        //                //,curr: 5 //设定初始在第 5 页
-        //                ,
-        //                groups: 1 //只显示 1 个连续页码
-        //                ,
-        //                first: false //不显示首页
-        //                ,
-        //                last: false //不显示尾页
-
-        //            },
-        //            cols: [
-        //                [
-        //                    { field: 'id', width: 80, title: '排序', templet: function (d) {
-        //                            if(d.vip_type == 1){
-        //                                res = "钻石会员"
-        //                            }else{
-        //                                res = "至尊会员"
-        //                            }
-        //                                return res;
-        //                     } },
-        //                    { field: '', width: 100, title: '查询条件',templet: function (d) {
-        //                            if(d.vip_type == 1){
-        //                                res = "钻石会员"
-        //                            }else{
-        //                                res = "至尊会员"
-        //                            }
-        //                                return res;
-        //                     }},
-        //                    { field: '', width: 80, title: '字段勾选',templet: function (d) {
-        //                            if(d.vip_type == 1){
-        //                                res = "钻石会员"
-        //                            }else{
-        //                                res = "至尊会员"
-        //                            }
-        //                                return res;
-        //                     }},
-        //                    { field: 'Name', width: 80, title: '字段名称' },
-        //                    { field: 'Type', title: '字段类型', minWidth: 150 },
-        //                    { field: 'Len', width: 80, title: '字段长度', sort: true },
-        //                    { field: 'Info', width: 80, title: '字段备注', sort: true },
-        //                    { field: '', width: 80, title: '' },
-        //                    { field: '', width: 135, title: '', sort: true }
-        //                ]
-        //            ]
-
-        //        });
-        //    });
     </script>
 </body>
 
