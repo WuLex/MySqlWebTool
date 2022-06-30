@@ -5,7 +5,7 @@
         //string txt_namespace, string txt_file, string txt_db
         public string Namespace { get; set; }
 
-        public string File { get; set; }
+        public string FilePath { get; set; }
 
         public string ConnectionId { get; set; }
 
