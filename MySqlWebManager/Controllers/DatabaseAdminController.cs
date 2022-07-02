@@ -21,14 +21,17 @@ namespace MySqlWebManager.Controllers
 
         private string conn = string.Empty;
 
-        //sql字符串
+        //查询表名的sql字符串
         private readonly string gettables = "select table_name from information_schema.tables where table_schema='{0}'";
 
+        //查询表结构字段的sql字符串
         private readonly string getflieds =
             "select column_name ColumnName,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE as IS_NULL,column_comment as Comment,extra as Auto,CHARACTER_MAXIMUM_LENGTH as MaxLen " +
-            "from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}'";
+            "from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}' ";
 
-        public int z = 0;
+        //查询表结构字段总数的sql 
+        private readonly string getTotalCountSql =
+            "select count(1) as totalcount from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}' ";
 
         #endregion 变量
 
@@ -88,13 +91,21 @@ namespace MySqlWebManager.Controllers
             ConnectionDto connectionDto = _connectionManager.GetConnectionDtoById(tableInputDto.ConnectionId, true);
             if (connectionDto != null)
             {
-                string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
                 conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid,
                     connectionDto.Pwd);
                 _db.Ado.Connection.ConnectionString = conn;
 
+                string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
+                var totalCount = await _db.Ado.GetIntAsync(string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
+                if (tableInputDto.Page >= 1 && tableInputDto.Limit > 0)
+                {
+                    int offsetNum = (tableInputDto.Page - 1) * tableInputDto.Limit;
+                    string pagesql = $" limit {offsetNum},{tableInputDto.Limit}";
+                    getTableFieldSql += pagesql;
+                }
+
+
                 List<TableField> datList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
-                var totalCount = datList.Count();
 
                 return new PageDataResult<TableField>()
                 {
@@ -1703,12 +1714,12 @@ namespace MySqlWebManager.Controllers
 
             if (string.IsNullOrEmpty(generateCodeInputDto.TableName))
             {
-                return new JavaScriptResult("alert('请选择表!')");
+                return new JavaScriptResult("请选择表!");
             }
 
             if (generateCodeInputDto.MethodList == null || !generateCodeInputDto.MethodList.Any())
             {
-                return new JavaScriptResult("alert('未勾选任何一个方法名称!')");
+                return new JavaScriptResult("未勾选任何一个方法名称!");
             }
 
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_list" && c.IsChecked == true))
@@ -1720,31 +1731,31 @@ namespace MySqlWebManager.Controllers
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_pagelist" && c.IsChecked == true))
             {
                 //GetPageList();
-                //codeBuilder.Append(((ContentResult)await GetPageList(generateCodeInputDto)).Content ?? "");
+                codeBuilder.Append(((ContentResult)await GetPageListAsync(generateCodeInputDto)).Content ?? "");
             }
 
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_update" && c.IsChecked == true))
             {
                 //Update();
-                //codeBuilder.Append(((ContentResult)await Update(generateCodeInputDto)).Content ?? "");
+                codeBuilder.Append(((ContentResult)await UpdateAsync(generateCodeInputDto)).Content ?? "");
             }
 
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_delete" && c.IsChecked == true))
             {
                 //Delete();
-                //codeBuilder.Append(((ContentResult)await Delete(generateCodeInputDto)).Content ?? "");
+                codeBuilder.Append(((ContentResult)await DeleteAsync(generateCodeInputDto)).Content ?? "");
             }
 
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_add" && c.IsChecked == true))
             {
                 // Insert();
-                //codeBuilder.Append(((ContentResult)await Insert(generateCodeInputDto)).Content ?? "");
+                codeBuilder.Append(((ContentResult)await InsertAsync(generateCodeInputDto)).Content ?? "");
             }
 
             if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_getmodel" && c.IsChecked == true))
             {
                 //GetModel();
-                //codeBuilder.Append(((ContentResult)await GetModel(generateCodeInputDto)).Content ?? "");
+                codeBuilder.Append(((ContentResult)await GetModel(generateCodeInputDto)).Content ?? "");
             }
 
             //ReaderBind();
