@@ -1,0 +1,98 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+{0}
+{
+    public interface IService<T> where T : class
+    {
+        /// <summary>
+        /// 根据主键id查询单条记录
+        /// </summary>
+        /// <param name="instanceId">主键值</param>
+        /// <returns></returns>
+        T Get(object instanceId);
+
+        /// <summary>
+        /// 查询数据。无参数表示查询所有记录。
+        /// </summary>
+        /// <param name="filter">查询条件（linq表达式）  如：t=>t.Age==20</param>
+        /// <param name="orderBy">排序依据和方式（linq表达式）  如：p=>p.OrderBy(t=>t.Age)</param>
+        /// <param name="includeProperties">需要封装的对象成员的名称（字符串）  如：学生信息中的班级对象需要查询时一并封装，参数为："Clas"</param>
+        /// <param name="paged">是否需要分页。默认false</param>
+        /// <param name="pageIndex">当前页码，从1开始。默认为1</param>
+        /// <param name="pageSize">每页数据个数。默认为20</param>
+        /// <returns>返回Iqueryable集合，延迟查询</returns>
+        IQueryable<T> Get(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20);
+
+        /// <summary>
+        /// 根据sql语句查询数据
+        /// </summary>
+        /// <param name="query">sql语句</param>
+        /// <param name="parameters">参数</param>
+        /// <returns>返回IEnumerable集合，非延迟查询</returns>
+        IEnumerable<T> GetWithRawSql(string query, params object[] parameters);
+
+        /// <summary>
+        /// 根据主键instanceId查询单条记录，不依赖于注入，独立查询
+        /// </summary>
+        /// <param name="instanceId">主键值</param>
+        /// <returns></returns>
+        T GetWithIndependent(object instanceId);
+
+        /// <summary>
+        /// 查询数据，不依赖于注入，独立查询。  无参数表示查询所有记录。
+        /// </summary>
+        /// <param name="filter">查询条件（linq表达式）  如：t=>t.Age==20</param>
+        /// <param name="orderBy">排序依据和方式（linq表达式）  如：p=>p.OrderBy(t=>t.Age)</param>
+        /// <param name="includeProperties">需要封装的对象成员的名称（字符串）  如：学生信息中的班级对象需要查询时一并封装，参数为："Clas"</param>
+        /// <param name="paged">是否需要分页。默认false</param>
+        /// <param name="pageIndex">当前页码，从1开始。默认为1</param>
+        /// <param name="pageSize">每页数据个数。默认为20</param>
+        /// <returns>返回Iqueryable集合，延迟查询</returns>
+        IQueryable<T> GetWithIndependent(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20);
+
+        /// <summary>
+        /// 查询数据记录数。
+        /// </summary>
+        /// <param name="filter">查询条件（linq表达式）  如：t=>t.Age==20</param>
+        /// <returns></returns>
+        Int64 Count(Expression<Func<T, bool>> filter = null);
+
+        /// <summary>
+        /// 添加记录
+        /// </summary>
+        /// <param name="instance">需要添加的对象</param>
+        void Add(T instance);
+
+        /// <summary>
+        /// 添加记录
+        /// </summary>
+        /// <param name="instance">需要添加的对象</param>
+        void Update(T instance);
+
+        /// <summary>
+        /// 根据对象删除记录
+        /// </summary>
+        /// <param name="instance">需要删除的对象</param>
+        void Delete(T instance);
+
+        /// <summary>
+        /// 根据主键id删除记录
+        /// </summary>
+        /// <param name="instanceId">需要删除的记录的主键id值</param>
+        void Delete(object instanceId);
+
+        /// <summary>
+        /// 根据条件删除记录
+        /// </summary>
+        /// <param name="filter">条件（linq表达式）  如：t=>t.Age>20</param>
+        void Delete(Expression<Func<T, bool>> filter = null);
+        
+        /// <summary>
+        /// 将所有更新保存到数据源
+        /// </summary>
+        void Save();
+    }
+}

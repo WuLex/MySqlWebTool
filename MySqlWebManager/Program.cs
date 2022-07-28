@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using MySqlWebManager.Common;
 using MySqlWebManager.Extentions;
 using SqlSugar;
@@ -12,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 MyServiceProvider.ServiceProvider = builder.Services.BuildServiceProvider();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+//添加访问本地文件所需服务
+builder.Services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Template")));
 #region 批量依赖注入
 builder.Services.BatchRegisterService("MySqlWebManager");
 #endregion
@@ -48,6 +50,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
+
+//开启静态文件访问
 app.UseStaticFiles();
 
 app.UseRouting();

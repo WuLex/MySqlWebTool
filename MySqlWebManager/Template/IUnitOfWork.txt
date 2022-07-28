@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+{0}
+{1}
+{
+    public interface IUnitOfWork
+    {
+        DBEntities DB { get; }
+        void Save();
+    }
+}

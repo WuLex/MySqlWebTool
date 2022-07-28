@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+{0}
+{
+    public interface IRepository<T> where T : class
+    {
+        T Get(object instanceId);
+        IQueryable<T> Get(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20);
+        IEnumerable<T> GetWithRawSql(string query, params object[] parameters);
+        T GetWithIndependent(object instanceId);
+        IQueryable<T> GetWithIndependent(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20);
+
+        void Add(T instance);
+        void Delete(T instance);
+        void Update(T instance);
+        void Save();
+    }
+}

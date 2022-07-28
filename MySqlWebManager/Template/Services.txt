@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Ninject;
+{0}{1}{2}
+{3}
+{
+    public interface I{4}Service : IService<{4}>
+    {
+        #region 自定义方法签名
+
+        #endregion
+    }
+
+    public class {4}Service : Service<{4}>, I{4}Service
+    {
+        //若在方法中需要使用其他Service，参照下列写法.
+        //并在DisposeManagedResources()方法中释放托管资源，在DisposeUnmanagedResources()方法中释放非托管资源。
+        //[Inject]
+        //private IXxxxService xxxxService { get; set; }
+
+        #region 释放资源
+        //释放托管资源 例如：((IDisposable)xxxxService).Dispose();
+        protected override void DisposeManagedResources()
+        {
+
+        }
+        //释放非托管资源
+        protected override void DisposeUnmanagedResources()
+        {
+
+        }
+        #endregion
+
+        #region 自定义方法
+
+        #endregion
+    }
+}

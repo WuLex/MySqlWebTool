@@ -1,0 +1,108 @@
+﻿using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Data;
+using System.Collections.Generic;
+using Ninject;
+{0}{1}
+{2}
+{
+    public class Repository<T> : IDisposable, IRepository<T> where T : class
+    {
+        [Inject]
+        private IUnitOfWork unitOfWork { get; set; }
+        private DBEntities db { get { if (unitOfWork == null) return null; else return unitOfWork.DB; } }
+        private DbSet<T> dbSet { get { return db.Set<T>(); } }
+
+        private DBEntities independentDb;
+        protected DBEntities IndependentDb { get { return independentDb = (db ?? new DBEntities()); } }
+
+        public T Get(object instanceId)
+        {
+            return dbSet.Find(instanceId);
+        }
+
+        public IQueryable<T> Get(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20)
+        {
+            IQueryable<T> query = dbSet;
+            if (filter != null) query = query.Where(filter);
+            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+            if (orderBy != null) query = orderBy(query);
+            if (paged) query = query.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsQueryable();
+            return query;
+        }
+
+        public IEnumerable<T> GetWithRawSql(string query, params object[] parameters)
+        {
+            return dbSet.SqlQuery(query, parameters);
+        }
+
+        public T GetWithIndependent(object instanceId)
+        {
+            return IndependentDb.Set<T>().Find(instanceId);
+        }
+
+        public IQueryable<T> GetWithIndependent(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", bool paged = false, int pageIndex = 1, int pageSize = 20)
+        {
+            IQueryable<T> query = IndependentDb.Set<T>();
+            if (filter != null) query = query.Where(filter);
+            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+            if (orderBy != null) query = orderBy(query);
+            if (paged) query = query.Skip(pageSize * (pageIndex - 1)).Take(pageSize).AsQueryable();
+            return query;
+        }
+
+        public void Add(T instance)
+        {
+            this.dbSet.Attach(instance);
+            this.db.Entry(instance).State = EntityState.Added;
+        }
+
+        public void Update(T instance)
+        {
+            this.dbSet.Attach(instance);
+            this.db.Entry(instance).State = EntityState.Modified;
+        }
+        public void Delete(T instance)
+        {
+            this.dbSet.Attach(instance);
+            this.db.Entry(instance).State = EntityState.Deleted;
+        }
+
+        public void Save()
+        {
+            unitOfWork.Save();
+        }
+
+        private bool hasDisposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!hasDisposed)
+            {
+                if (disposing)
+                {
+                    ((IDisposable)unitOfWork).Dispose();
+                    if (db != null) db.Dispose();
+                    if (independentDb != null) independentDb.Dispose();
+                }
+                hasDisposed = true;
+            }
+        }
+        ~Repository()
+        {
+            Dispose(false);
+        }
+    }
+}
