@@ -2,6 +2,7 @@
 using Microsoft.Extensions.FileProviders;
 using MySqlWebManager.Common;
 using MySqlWebManager.Dtos;
+using MySqlWebManager.Dtos.Options;
 using MySqlWebManager.Interfaces;
 using MySqlWebManager.Models;
 using MySqlWebManager.util;
@@ -134,8 +135,6 @@ namespace MySqlWebManager.Controllers
             }
         }
 
-
-
         /// <summary>
         /// 生成DDD代码
         /// </summary>
@@ -160,38 +159,6 @@ namespace MySqlWebManager.Controllers
             {
                 codeBuilder.Append((await GenerateTemplateCodeAsync(generateCodeInputDto)) ?? "");
             }
-
-            //if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_pagelist" && c.IsChecked == true))
-            //{
-            //    //GetPageList();
-            //    codeBuilder.Append(((ContentResult)await GetPageListAsync(generateCodeInputDto)).Content ?? "");
-            //}
-
-            //if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_update" && c.IsChecked == true))
-            //{
-            //    //Update();
-            //    codeBuilder.Append(((ContentResult)await UpdateAsync(generateCodeInputDto)).Content ?? "");
-            //}
-
-            //if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_delete" && c.IsChecked == true))
-            //{
-            //    //Delete();
-            //    codeBuilder.Append(((ContentResult)await DeleteAsync(generateCodeInputDto)).Content ?? "");
-            //}
-
-            //if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_add" && c.IsChecked == true))
-            //{
-            //    // Insert();
-            //    codeBuilder.Append((await InsertAsync(generateCodeInputDto)).Content ?? "");
-            //}
-
-            //if (generateCodeInputDto.MethodList.Any(c => c.CheckName == "cb_getmodel" && c.IsChecked == true))
-            //{
-            //    //GetModel();
-            //    codeBuilder.Append(((ContentResult)await GetModel(generateCodeInputDto)).Content ?? "");
-            //}
-
-            //ReaderBind();
             return Content(codeBuilder.ToString());
         }
 
@@ -226,18 +193,6 @@ namespace MySqlWebManager.Controllers
             sb.Append("\n\n\n//=============DDD===============\n");
 
             #endregion
-
-            //sb.Append("public IList<" + tablename + "> GetList(" + conndetion + "int top = 10)");
-            //sb.Append("\n{\n");
-            //sb.Append("IList<" + tablename + "> list= new List<" + tablename + ">();\r");
-
-            // name="cb_controller"  i
-            // name = "cb_apicontroller"
-            // name="cb_repository"  i
-            // name = "cb_service"  id="
-            // name="cb_viewmodel"  id
-            // name = "cb_model"  id="cb
-
 
             #region 模板文件读取
 
@@ -285,12 +240,25 @@ namespace MySqlWebManager.Controllers
             }
             #endregion
 
+            var codeGenerateOption = new CodeGenerateOption()
+            {
+                ModelsNamespace = "NT.Models.Demo",
+                IRepositoriesNamespace = "NT.IRepositories.Demo",
+                RepositoriesNamespace = "NT.Repositories.Demo",
+                ControllersNamespace = "NT.WebApi.Controllers",
+                IServicesNamespace = "NT.IServices.Demo",
+                ServicesNamespace = "NT.Services.Demo",
+                OutputPath = "D:\\CodeGenerator\\NT\\Demo"
+            };
+
             var layerList = generateCodeInputDto.MethodList.Where(c => c.IsChecked == true).ToList();
             for (int i = 0; i < layerList.Count; i++)
             {
                 sb.Append(TemplateDict[layerList[i].CheckName]);
                 sb.Append("\r\n---------------------------------------------------------------------\r\n");
             }
+           
+            
             return sb.ToString();
         }
 
