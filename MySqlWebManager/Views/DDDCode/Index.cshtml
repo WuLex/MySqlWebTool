@@ -165,31 +165,32 @@
             <div class="layui-row">
                 <div class="layui-col-xs6 layui-col-md6">
                     <div class="grid-demo">
-                        <div class="layui-form-item" id="codemethodchk" pane="">
+                         <div class="layui-form-item" id="codelayerchk" pane="">
                             <label class="layui-form-label" style="width: auto">生成代码包含</label>
                             <div class="layui-input-block">
-                                <input type="checkbox" name="cb_add" lay-skin="primary" title="增加" id="cb_add"
+                                <input type="checkbox" name="cb_controller"  id="cb_controller" lay-skin="primary" title="Controller"
                                     checked="checked">
                                 <br>
-                                <input type="checkbox" name="cb_delete" lay-skin="primary" title="删除" id="cb_delete"
+                                <input type="checkbox" name="cb_apicontroller"  id="cb_apicontroller" lay-skin="primary" title="ApiController"
                                     checked="checked">
                                 <br>
-                                <input type="checkbox" name="cb_update" lay-skin="primary" title="修改" id="cb_update"
+                                <input type="checkbox" name="cb_repository"  id="cb_repository" lay-skin="primary" title="Repository和IRepository"
                                     checked="checked">
                                 <br>
-                                <input type="checkbox" name="cb_getmodel" lay-skin="primary" title="单条" id="cb_getmodel"
+                                <input type="checkbox" name="cb_service"  id="cb_service" lay-skin="primary" title="Service和IService"
                                     checked="checked">
                                 <br>
-                                <input type="checkbox" name="cb_list" lay-skin="primary" title="列表" id="cb_list"
+                                <input type="checkbox" name="cb_viewmodel"  id="cb_viewmodel" lay-skin="primary" title="ViewModel"
                                     checked="checked">
                                 <br>
-                                <input type="checkbox" name="cb_pagelist" lay-skin="primary" title="分页" id="cb_pagelist"
+                                <input type="checkbox" name="cb_model"  id="cb_model" lay-skin="primary" title="Model"
                                     checked="checked">
+                                
                             </div>
-                        </div>
-                        <button name="btnGenerateCharpCode" type="button" value="生成C#语句" class="layui-btn"
-                            id="btnGenerateCharpCode" style="">
-                            生成选中表的Crud代码
+                        </div> 
+                        <button name="btnGenerateDDDCode" type="button" value="生成DDD代码" class="layui-btn"
+                            id="btnGenerateDDDCode" style="">
+                            生成选中表的DDD代码
                         </button>
 
                         <button name="btnGenerateEntity" type="button" value="生成实体" class="layui-btn"
@@ -205,7 +206,6 @@
                         </span>
 
                         <div class="layui-card" id="div_pl" style="display: none;">
-                            @*<div class="layui-card-header">卡片面板</div>*@
                             <div class="layui-card-body">
                                 命名空间:
                                 <input name="txt_namespace" type="text" class="layui-input" value="Blog.Entities"
@@ -251,10 +251,10 @@
     </form>
 
     <script>
-        var connUrl = "/DatabaseAdmin/GetTablesList";
-        var tablefieldUrl = "/DatabaseAdmin/GetTableFieldsList";
-        var generateCharpCodeUrl = "/DatabaseAdmin/GenerateCharpCode";
-        var generateEntityUrl = "/DatabaseAdmin/GenerateEntity";
+        var connUrl = "/DDDCode/GetTablesList";
+        var tablefieldUrl = "/DDDCode/GetTableFieldsList";
+        var generateCharpCodeUrl = "/DDDCode/GenerateCharpCode";
+        var generateEntityUrl = "/DDDCode/GenerateEntity";
         //var layuiform = layui.form;
         var layer = layui.layer;
 
@@ -280,11 +280,9 @@
         function copytext() {
             var clipboard = new ClipboardJS('.copyEle', {
                 text: function (trigger) {
-                    //var codeStr = codeEditor.getValue();
                     return codeEditor.getValue();
                 }
             });
-            //window.clipboardData.setData("Text",codeEditor.getValue());
             layer.alert("复制成功！");
         }
 
@@ -335,7 +333,6 @@
                         ,
                         form = layui.form; //表单
 
-
                     table.render({
                         elem: '#tablefields',
                         url: tablefieldUrl,
@@ -344,7 +341,6 @@
                         contentType: 'application/json',
                         where: obj,
                         parseData: function (res) { //res 即为原始返回的数据
-                            //console.log(res);
                             return {
                                 "code": res.code, //解析接口状态
                                 "msg": res.msg, //解析提示文本
@@ -355,7 +351,6 @@
                         //data: obj,   //此处是请求的ajax接口数据
                         title: 'Table单',
                         limit: 5, //一页能够显示的最大数目
-                        //toolbar: '<span>Table单</span>',
                         even: true, //隔行背景
                         event: true,
                         page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
@@ -369,51 +364,7 @@
                         },
                         cols: [
                             [
-                                {
-                                    //width: 200,
-                                    title: '排序',
-                                    fixed: "left",
-                                    templet: function (d) {
-                                        res = '<input type="checkbox" lay-skin="primary" name="queryOrder" value="' +
-                                            d.columnName +
-                                            '"' +
-                                            ((trIndex++ === 0) ? 'checked' : '') +
-                                            '/>' +
-                                            '<select class="orderTypeInfo" name="ddl_' +
-                                            d.columnName +
-                                            '">' +
-                                            '<option value="desc">降序</option>' +
-                                            '<option value="asc">升序</option>' +
-                                            '</select>';
-                                        return res;
-                                    }
-                                },
-                                {
-                                    //width: 100,
-                                    title: '查询条件',
-                                    align: 'center',
-                                    templet: function (d) {
-                                        res =
-                                            '<input type="checkbox" lay-skin="primary" name="queryCondition" value="' +
-                                            d.columnName +
-                                            '" />';
-                                        return res;
-                                    }
-                                },
-                                {
-                                    type: 'checkbox',
-                                    title: '字段勾选',
-                                    width: 100,
-                                    templet: function (d) {
-                                        res = '<input type="checkbox"  lay-skin="primary" name="queryField" value="' +
-                                            d.columnName +
-                                            '"  checked="checked" style="float: right" />';
-                                        return res;
-                                    }
-                                    //width: 100, title: '字段勾选<input type="checkbox"  lay-skin="primary" id="checkallfield" checked/>',
-
-                                },
-                                { field: 'columnName', /*width: 150,*/ title: '字段名称' },
+                                { field: 'columnName', /*width: 150,*/ title: '字段名称', fixed: "left" },
                                 { field: 'datA_TYPE', /*width: 150,*/ title: '字段类型' },
                                 { field: 'maxLen', /*width: 150,*/ title: '字段长度', sort: true },
                                 { field: 'comment', /*width: 200,*/ title: '字段说明', sort: true },
@@ -422,9 +373,8 @@
                             ]
                         ],
                         done: function (obj) {
-
-                            $(".layui-table-header .laytable-cell-checkbox span").remove();
-                            $(".layui-table-header .laytable-cell-checkbox").prepend("<span>Select字段</span>");
+                            //$(".layui-table-header .laytable-cell-checkbox span").remove();
+                            //$(".layui-table-header .laytable-cell-checkbox").prepend("<span>Select字段</span>");
                             layer.closeAll();
                         }
                     });
@@ -475,7 +425,7 @@
                 }
             })
 
-            $("#btnGenerateCharpCode").click(function () {
+            $("#btnGenerateDDDCode").click(function () {
                 var table = layui.table; //表格
                 var metnodArray = [];
                 var queryCondition_chk_val = []; //定义一个数组
@@ -484,38 +434,12 @@
                 var orderTypeInfoArray = []; //排序类型asc/desc
 
                 //普通checkbox,获取选中的值
-                $("#codemethodchk input[type='checkbox']").each(function (index, item) {
+                $("#codelayerchk input[type='checkbox']").each(function (index, item) {
                     var obj = {}
                     //obj.methoddic = {};
                     obj.checkname = $(this).attr("name");
                     obj.ischecked = $(this).prop("checked");
                     metnodArray.push(obj);
-                });
-
-                //普通checkbox,获取选中的值
-                $('input[name="queryOrder"]:checked').each(function () {
-                    queryOrderArray.push($(this).val()); //将选中的值添加到数组中
-                });
-
-                //普通checkbox,获取选中的值
-                $('input[name="queryCondition"]:checked').each(function () {
-                    queryCondition_chk_val.push($(this).val());
-                });
-
-                //layui table checkbox选择事件，获取选中的值
-                var checkStatus = table.checkStatus('tablefields');
-                var data = checkStatus.data;
-                for (var i = 0; i < data.length; i++) {
-                    //查询字段 赋值
-                    queryField_chk_val.push(data[i].columnName);
-                }
-
-
-                $('.orderTypeInfo').each(function (index, item) {
-                    var obj = {}
-                    obj.ordercolumnname = $(this).attr("name");
-                    obj.ordertype = $(this).val();
-                    orderTypeInfoArray.push(obj);
                 });
 
                 var ov = $("#select_tables").find('option:selected').val(); //获取选中的表名称
@@ -526,10 +450,6 @@
                         TableName: ov,
                         ConnectionId: connid,
                         MethodList: metnodArray,
-                        QueryConditionList: queryCondition_chk_val,
-                        QueryFieldList: queryField_chk_val,
-                        QueryOrderList: queryOrderArray,
-                        OrderTypeList: orderTypeInfoArray
                     };
 
                     //console.log(JSON.stringify(paramsdata));
@@ -539,7 +459,6 @@
                     layer.alert("请选中一张表");
                 }
             });
-
 
             $("#btnGenerateEntity").click(function () {
 
