@@ -14,6 +14,16 @@ namespace MySqlWebManager.Controllers
     public class DDDCodeController : Controller
     {
         #region 变量
+        public CodeGenerateOption codeGenerateOption = new CodeGenerateOption()
+        {
+            ModelsNamespace = "NT.Models.Demo",
+            IRepositoriesNamespace = "NT.IRepositories.Demo",
+            RepositoriesNamespace = "NT.Repositories.Demo",
+            ControllersNamespace = "NT.WebApi.Controllers",
+            IServicesNamespace = "NT.IServices.Demo",
+            ServicesNamespace = "NT.Services.Demo",
+            OutputPath = "D:\\CodeGenerator\\NT\\Demo"
+        };
 
         private string connStr =
             "Data Source={0};Initial Catalog={1};Persist Security Info=True;User ID={2};Password={3};Pooling=False;charset=utf8;" +
@@ -240,16 +250,7 @@ namespace MySqlWebManager.Controllers
             }
             #endregion
 
-            var codeGenerateOption = new CodeGenerateOption()
-            {
-                ModelsNamespace = "NT.Models.Demo",
-                IRepositoriesNamespace = "NT.IRepositories.Demo",
-                RepositoriesNamespace = "NT.Repositories.Demo",
-                ControllersNamespace = "NT.WebApi.Controllers",
-                IServicesNamespace = "NT.IServices.Demo",
-                ServicesNamespace = "NT.Services.Demo",
-                OutputPath = "D:\\CodeGenerator\\NT\\Demo"
-            };
+            
 
             var layerList = generateCodeInputDto.MethodList.Where(c => c.IsChecked == true).ToList();
             for (int i = 0; i < layerList.Count; i++)
@@ -261,6 +262,145 @@ namespace MySqlWebManager.Controllers
             
             return sb.ToString();
         }
+
+        
+        public string ReplaceTemplate(string checkname, string templatetext,string tablename,)
+        {
+
+          
+
+            switch (checkname)
+            {
+
+                case "cb_apicontroller":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                   .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                   .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
+                   .Replace("{ModelTypeName}", tablename)
+                   .Replace("{KeyTypeName}", "Int");
+                    break;
+
+                case "cb_controller":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                 .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                 .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
+                 .Replace("{ModelTypeName}", tablename)
+                 .Replace("{KeyTypeName}", "Int");
+                    break;
+
+                case "cb_irepository":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                                        .Replace("{ModelTypeName}", tablename)
+                                        .Replace("{KeyTypeName}", "Int");
+                    break;
+
+                case "cb_iservice":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                 .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                 .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                 .Replace("{ModelTypeName}", tablename)
+                 .Replace("{KeyTypeName}", "Int");
+                    break;
+                case "cb_model":
+                    var tables = _db.DbMaintenance.GetTableInfoList(false);//true 走缓存 false不走缓存
+
+
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                 .Replace("{Comment}", table.TableComment)
+                 .Replace("{TableName}", tablename)
+                 .Replace("{ModelName}", className)
+                 .Replace("{KeyTypeName}", pkTypeName)
+                 .Replace("{ModelProperties}", sb.ToString());
+                    break;
+                case "cb_repository":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                                        .Replace("{RepositoriesNamespace}", codeGenerateOption.RepositoriesNamespace)
+                                        .Replace("{ModelTypeName}", tablename)
+                                        .Replace("{KeyTypeName}", "Int");
+                    break;
+                case "cb_service":
+                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                  .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                  .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                  .Replace("{ServicesNamespace}", codeGenerateOption.ServicesNamespace)
+                  .Replace("{ModelTypeName}", tablename)
+                  .Replace("{KeyTypeName}", "Int");
+                    break;
+                case "cb_viewmodel":
+                    TemplateDict.Add("cb_viewmodel", templateContent);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+
+        private string GenerateEntityProperty(DbTableColumn column)
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(column.Comments))
+            {
+                sb.AppendLine("\t\t/// <summary>");
+                sb.AppendLine("\t\t/// " + column.Comments);
+                sb.AppendLine("\t\t/// </summary>");
+            }
+            if (column.IsPrimaryKey)
+            {
+                sb.AppendLine("\t\t[Key]");
+                sb.AppendLine($"\t\t[Column(\"{column.ColName}\")]");
+                if (column.IsIdentity)
+                {
+                    sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
+                }
+                sb.AppendLine($"\t\tpublic override {column.CSharpType} Id " + "{get;set;}");
+            }
+            else
+            {
+                if (codeGenerateOption.IsPascalCase)
+                {
+                    sb.AppendLine($"\t\t[Column(\"{column.ColName}\")]");
+                }
+                if (!column.IsNullable)
+                {
+                    sb.AppendLine("\t\t[Required]");
+                }
+
+                var colType = column.CSharpType;
+                if (colType.ToLower() == "string" && column.ColumnLength.HasValue && column.ColumnLength.Value > 0)
+                {
+                    sb.AppendLine($"\t\t[MaxLength({column.ColumnLength.Value})]");
+                }
+                if (column.IsIdentity)
+                {
+                    sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
+                }
+
+                if (colType.ToLower() != "string" && colType.ToLower() != "byte[]" && colType.ToLower() != "object" &&
+                    column.IsNullable)
+                {
+                    colType = colType + "?";
+                }
+
+                var colName = column.ColName;
+                if (!column.Alias.IsNullOrEmpty()) colName = column.Alias;
+                if (codeGenerateOption.IsPascalCase) colName = colName.ToPascalCase();
+                sb.AppendLine($"\t\tpublic {colType} {colName} " + "{get;set;}");
+            }
+
+            return sb.ToString();
+        }
+
+
+
+
+
+
+
+
+
 
         /// <summary>
         ///
