@@ -3,6 +3,7 @@ using Microsoft.Extensions.FileProviders;
 using MySqlWebManager.Common;
 using MySqlWebManager.Dtos;
 using MySqlWebManager.Dtos.Options;
+using MySqlWebManager.Extentions;
 using MySqlWebManager.Interfaces;
 using MySqlWebManager.Models;
 using MySqlWebManager.util;
@@ -14,6 +15,7 @@ namespace MySqlWebManager.Controllers
     public class DDDCodeController : Controller
     {
         #region 变量
+
         public CodeGenerateOption codeGenerateOption = new CodeGenerateOption()
         {
             ModelsNamespace = "NT.Models.Demo",
@@ -181,7 +183,7 @@ namespace MySqlWebManager.Controllers
             var totalCount = 0;
             var tablename = generateCodeInputDto.TableName;
 
-            #endregion
+            #endregion 定义变量
 
             //获取数据库连接信息
             ConnectionDto connectionDto =
@@ -202,7 +204,7 @@ namespace MySqlWebManager.Controllers
             #region 拼接代码字符串
             sb.Append("\n\n\n//=============DDD===============\n");
 
-            #endregion
+            #endregion 拼接代码字符串
 
             #region 模板文件读取
 
@@ -214,7 +216,6 @@ namespace MySqlWebManager.Controllers
                 var templateContent = await System.IO.File.ReadAllTextAsync(fileInfoList[i].PhysicalPath, Encoding.UTF8);
                 switch (fileInfoList[i].Name)
                 {
-
                     case "ApiControllerTemplate.txt":
                         TemplateDict.Add("cb_apicontroller", templateContent);
                         //sb.Append(templateContent);
@@ -231,47 +232,44 @@ namespace MySqlWebManager.Controllers
                     case "IServiceTemplate.txt":
                         TemplateDict.Add("cb_iservice", templateContent);
                         break;
+
                     case "ModelTemplate.txt":
                         TemplateDict.Add("cb_model", templateContent);
                         break;
+
                     case "RepositoryTemplate.txt":
                         TemplateDict.Add("cb_repository", templateContent);
                         break;
+
                     case "ServiceTemplate.txt":
                         TemplateDict.Add("cb_service", templateContent);
                         break;
+
                     case "ViewModelTemplate.txt":
                         TemplateDict.Add("cb_viewmodel", templateContent);
                         break;
+
                     default:
                         break;
                 }
-
             }
-            #endregion
-
-            
+            #endregion 模板文件读取
 
             var layerList = generateCodeInputDto.MethodList.Where(c => c.IsChecked == true).ToList();
             for (int i = 0; i < layerList.Count; i++)
             {
-                sb.Append(TemplateDict[layerList[i].CheckName]);
+                //sb.Append(TemplateDict[layerList[i].CheckName]);
+                sb.Append(ReplaceTemplate(layerList[i].CheckName,TemplateDict[layerList[i].CheckName],tablename));
                 sb.Append("\r\n---------------------------------------------------------------------\r\n");
             }
-           
-            
+
             return sb.ToString();
         }
 
-        
-        public string ReplaceTemplate(string checkname, string templatetext,string tablename,)
+        public string ReplaceTemplate(string checkname, string templatetext, string tablename)
         {
-
-          
-
             switch (checkname)
             {
-
                 case "cb_apicontroller":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
                    .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
@@ -302,17 +300,18 @@ namespace MySqlWebManager.Controllers
                  .Replace("{ModelTypeName}", tablename)
                  .Replace("{KeyTypeName}", "Int");
                     break;
+
                 case "cb_model":
-                    var tables = _db.DbMaintenance.GetTableInfoList(false);//true 走缓存 false不走缓存
-
-
-                    return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                 .Replace("{Comment}", table.TableComment)
-                 .Replace("{TableName}", tablename)
-                 .Replace("{ModelName}", className)
-                 .Replace("{KeyTypeName}", pkTypeName)
-                 .Replace("{ModelProperties}", sb.ToString());
+                    //   var tables = _db.DbMaintenance.GetTableInfoList(false);//true 走缓存 false不走缓存
+                    //   return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                    //.Replace("{Comment}", table.TableComment)
+                    //.Replace("{TableName}", tablename)
+                    //.Replace("{ModelName}", className)
+                    //.Replace("{KeyTypeName}", pkTypeName)
+                    //.Replace("{ModelProperties}", sb.ToString());
+                    return "";
                     break;
+
                 case "cb_repository":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
                                         .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
@@ -320,6 +319,7 @@ namespace MySqlWebManager.Controllers
                                         .Replace("{ModelTypeName}", tablename)
                                         .Replace("{KeyTypeName}", "Int");
                     break;
+
                 case "cb_service":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
                   .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
@@ -328,15 +328,17 @@ namespace MySqlWebManager.Controllers
                   .Replace("{ModelTypeName}", tablename)
                   .Replace("{KeyTypeName}", "Int");
                     break;
+
                 case "cb_viewmodel":
-                    TemplateDict.Add("cb_viewmodel", templateContent);
+                    //TemplateDict.Add("cb_viewmodel", templateContent);
+                    return "";
                     break;
+
                 default:
+                    return "";
                     break;
             }
-
         }
-
 
         private string GenerateEntityProperty(DbTableColumn column)
         {
@@ -385,22 +387,13 @@ namespace MySqlWebManager.Controllers
                 }
 
                 var colName = column.ColName;
-                if (!column.Alias.IsNullOrEmpty()) colName = column.Alias;
+                if (!string.IsNullOrEmpty(column.Alias)) colName = column.Alias;
                 if (codeGenerateOption.IsPascalCase) colName = colName.ToPascalCase();
                 sb.AppendLine($"\t\tpublic {colType} {colName} " + "{get;set;}");
             }
 
             return sb.ToString();
         }
-
-
-
-
-
-
-
-
-
 
         /// <summary>
         ///
