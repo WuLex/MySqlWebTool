@@ -1,21 +1,24 @@
-﻿using SqlSugar;
+﻿using MySqlWebManager.Helpers;
+using MySqlWebManager.Models;
+using SqlSugar;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
 
 namespace MySqlWebManager.Extentions
 {
     public static class SqlSugarExtensions
     {
-        public static DataTable GetCurrentDatabaseAllTables(this ISqlSugarClient db)
+        public static DataTable GetCurrentDatabaseAllTables(this ISqlSugarClient client)
         {
-            if (db == null) throw new ArgumentNullException(nameof(db));
-            var context = db.Ado.Context;
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            var context = client.Ado.Context;
             if (context == null) throw new ArgumentNullException(nameof(context));
-            //var db = context.GetDatabase();
-            
-            //var db = context.DbMaintenance.GetDataBaseList;
-        
+
             var sql = string.Empty;
-            if (db.IsSqlServer())
+            if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.SqlServer)
             {
                 sql = "select * from (SELECT (case when a.colorder=1 then d.name else '' end) as TableName," +
                       "(case when a.colorder=1 then isnull(f.value,'') else '' end) as TableComment" +
@@ -24,15 +27,15 @@ namespace MySqlWebManager.Extentions
                       " left join sys.extended_properties f on d.id=f.major_id and f.minor_id=0) t" +
                       " where t.TableName!=''";
             }
-            else if (db.IsMySql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.MySql)
             {
                 sql =
                     "SELECT TABLE_NAME as TableName," +
                     " Table_Comment as TableComment" +
                     " FROM INFORMATION_SCHEMA.TABLES" +
-                    $" where TABLE_SCHEMA = '{db.GetDbConnection().Database}'";
+                    $" where TABLE_SCHEMA = '{client.Ado.Connection.Database}'";
             }
-            else if (db.IsNpgsql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.PostgreSQL)
             {
                 sql =
                     "select relname as TableName," +
@@ -41,7 +44,7 @@ namespace MySqlWebManager.Extentions
                     " where relkind = 'r' and relname not like 'pg_%' and relname not like 'sql_%'" +
                     " order by relname";
             }
-            else if (db.IsOracle())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.Oracle)
             {
                 sql =
                     "select \"a\".TABLE_NAME as \"TableName\",\"b\".COMMENTS as \"TableComment\" from USER_TABLES \"a\" JOIN user_tab_comments \"b\" on \"b\".TABLE_NAME=\"a\".TABLE_NAME";
@@ -51,17 +54,19 @@ namespace MySqlWebManager.Extentions
                 throw new NotImplementedException("This method does not support current database yet.");
             }
 
-            return context.GetDataTable(sql);
+            return context.Ado.GetDataTable(sql);
         }
 
-        public static DataTable GetTableColumns(this IDbContextCore context, params string[] tableNames)
+        public static DataTable GetTableColumns(this ISqlSugarClient client, params string[] tableNames)
         {
             if (tableNames == null || tableNames.Length == 0)
                 return null;
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            var context = client.Ado.Context;
             if (context == null) throw new ArgumentNullException(nameof(context));
-            var db = context.GetDatabase();
+            //var db = client.Ado.Connection.Database();
             var sql = string.Empty;
-            if (db.IsSqlServer())
+            if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.SqlServer)
             {
                 sql = "SELECT d.name as TableName,a.name as ColName," +
                       "CONVERT(bit,(case when COLUMNPROPERTY(a.id,a.name,'IsIdentity')=1 then 1 else 0 end)) as IsIdentity, " +
@@ -72,9 +77,9 @@ namespace MySqlWebManager.Extentions
                       "isnull(e.text,'') as DefaultValue," +
                       "isnull(g.[value], ' ') AS Comments " +
                       "FROM  syscolumns a left join systypes b on a.xtype=b.xusertype  inner join sysobjects d on a.id=d.id and d.xtype='U' and d.name<>'dtproperties' left join syscomments e on a.cdefault=e.id  left join sys.extended_properties g on a.id=g.major_id AND a.colid=g.minor_id left join sys.extended_properties f on d.id=f.class and f.minor_id=0 " +
-                      $"where b.name is not null and d.name in ({tableNames.Select(m => $"'{m}'").Join(",")}) order by a.id,a.colorder";
+                      $"where b.name is not null and d.name in ({tableNames.Select(m => $"'{m}'").ToList().Join(",")}) order by a.id,a.colorder";
             }
-            else if (db.IsMySql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.MySql)
             {
                 sql =
                     "select table_name as TableName,column_name as ColName, " +
@@ -85,9 +90,9 @@ namespace MySqlWebManager.Extentions
                     " CHARACTER_MAXIMUM_LENGTH as ColumnLength," +
                     " IF(COLUMN_KEY = 'PRI','TRUE','FALSE') as IsPrimaryKey," +
                     " COLUMN_COMMENT as Comments " +
-                    $" from information_schema.columns where table_schema = '{db.GetDbConnection().Database}' and table_name in ({tableNames.Select(m => $"'{m}'").Join(",")})";
+                    $" from information_schema.columns where table_schema = '{client.Ado.Connection.Database}' and table_name in ({tableNames.Select(m => $"'{m}'").Join(",")})";
             }
-            else if (db.IsNpgsql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.PostgreSQL)
             {
                 sql =
                     "select table_name as TableName,column_name as ColName," +
@@ -111,7 +116,7 @@ namespace MySqlWebManager.Extentions
                     $" where pg_attr.attnum > 0 and pg_attr.attrelid = pg_class.oid and pg_class.relname in ({tableNames.Select(m => $"'{m}'").Join(",")})) c on c.attname = information_schema.columns.column_name" +
                     $" where table_schema = 'public' and table_name in ({tableNames.Select(m => $"'{m}'").Join(",")}) order by ordinal_position asc";
             }
-            else if (db.IsOracle())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.Oracle)
             {
                 sql = "select a.Table_Name as TableName,"
                       + "a.DATA_LENGTH as ColumnLength,"
@@ -134,23 +139,26 @@ namespace MySqlWebManager.Extentions
                 throw new NotImplementedException("This method does not support current database yet.");
             }
 
-            return context.GetDataTable(sql);
+            return context.Ado.GetDataTable(sql);
         }
 
-        public static IList<DbTable> GetCurrentDatabaseTableList(this IDbContextCore context)
+        public static IList<DbTable> GetCurrentDatabaseTableList(this ISqlSugarClient client)
         {
-            var tables = context.GetCurrentDatabaseAllTables().ToList<DbTable>();
-            var db = context.GetDatabase();
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            var context = client.Ado.Context;
+            if (context == null) throw new ArgumentNullException(nameof(context));
+
+            var tables = context.DbMaintenance.GetTableInfoList(false);
             DatabaseType dbType;
-            if (db.IsSqlServer())
+            if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.SqlServer)
                 dbType = DatabaseType.MSSQL;
-            else if (db.IsMySql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.MySql)
                 dbType = DatabaseType.MySQL;
-            else if (db.IsNpgsql())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.PostgreSQL)
             {
                 dbType = DatabaseType.PostgreSQL;
             }
-            else if (db.IsOracle())
+            else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.Oracle)
             {
                 dbType = DatabaseType.Oracle;
             }
@@ -158,11 +166,12 @@ namespace MySqlWebManager.Extentions
             {
                 throw new NotImplementedException("This method does not support current database yet.");
             }
-            var columns = context.GetTableColumns(tables.Select(m => m.TableName).ToArray()).ToList<DbTableColumn>();
-            tables.ForEach(item =>
+            var columns = context.GetTableColumns(tables.Select(m => m.Name).ToArray()).ToList<DbTableColumn>();
+            tables.ForEach(async item =>
             {
-                var dt = context.GetDataTable($"select * from [{item.TableName}] where 1 != 1");
-                item.Columns = columns.Where(m => m.TableName == item.TableName).ToList();
+                var dt =await context.Ado.GetDataTableAsync($"select * from [{item.Name}] where 1 != 1");
+
+                item.Columns = columns.Where(m => m.TableName == item.Name).ToList();
                 item.Columns.ForEach(x =>
                 {
                     x.CSharpType = dt.Columns[x.ColName].DataType.Name;
