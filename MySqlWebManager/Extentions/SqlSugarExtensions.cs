@@ -87,9 +87,10 @@ namespace MySqlWebManager.Extentions
                     " IF(extra = 'auto_increment','TRUE','FALSE') as IsIdentity," +
                     " IF(is_nullable = 'YES','TRUE','FALSE') as IsNullable," +
                     " DATA_TYPE as ColumnType," +
-                    " CHARACTER_MAXIMUM_LENGTH as ColumnLength," +
+                    " IFNULL(CHARACTER_MAXIMUM_LENGTH,0) as ColumnLength," +
                     " IF(COLUMN_KEY = 'PRI','TRUE','FALSE') as IsPrimaryKey," +
-                    " COLUMN_COMMENT as Comments " +
+                    " COLUMN_COMMENT as Comments" +
+                    //",NUMERIC_PRECISION DataPrecision,NUMERIC_SCALE DataScale  " +
                     $" from information_schema.columns where table_schema = '{client.Ado.Connection.Database}' and table_name in ({tableNames.Select(m => $"'{m}'").Join(",")})";
             }
             else if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.PostgreSQL)
@@ -148,7 +149,8 @@ namespace MySqlWebManager.Extentions
             var context = client.Ado.Context;
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            var tables = context.DbMaintenance.GetTableInfoList(false);
+            //var tables = context.DbMaintenance.GetTableInfoList(false);
+            var tables = context.GetCurrentDatabaseAllTables().ToList<DbTable>();
             DatabaseType dbType;
             if (client.CurrentConnectionConfig.DbType == SqlSugar.DbType.SqlServer)
                 dbType = DatabaseType.MSSQL;
@@ -166,19 +168,23 @@ namespace MySqlWebManager.Extentions
             {
                 throw new NotImplementedException("This method does not support current database yet.");
             }
-            var columns = context.GetTableColumns(tables.Select(m => m.Name).ToArray()).ToList<DbTableColumn>();
+
+            DataTable  DT=context.GetTableColumns(tables.Select(m => m.TableName).ToArray());
+            var columns = context.GetTableColumns(tables.Select(m => m.TableName).ToArray()).ToList<DbTableColumn>();
             tables.ForEach(async item =>
             {
-                var dt =await context.Ado.GetDataTableAsync($"select * from [{item.Name}] where 1 != 1");
+                var dt =await context.Ado.GetDataTableAsync($"select * from {item.TableName} where 1!=1");
 
-                //item.Columns = columns.Where(m => m.TableName == item.Name).ToList();
-                //item.Columns.ForEach(x =>
-                //{
-                //    x.CSharpType = dt.Columns[x.ColName].DataType.Name;
-                //});
+                if (dt!=null)
+                {
+                    item.Columns = columns.Where(m => m.TableName == item.TableName).ToList();
+                    item.Columns.ForEach(x =>
+                    {
+                        x.CSharpType = dt.Columns[x.ColName].DataType.Name;
+                    });
+                }
             });
-            //return tables;
-            return null;
+            return tables;
         }
 
 

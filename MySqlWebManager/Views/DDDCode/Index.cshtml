@@ -80,7 +80,7 @@
 </head>
 
 <body>
-    <ul>  
+ @*   <ul>  
     @foreach (IFileInfo item in Model)  
     {  
         if (item.IsDirectory)  
@@ -92,7 +92,7 @@
             <li><strong>@item.Name</strong> - @item.PhysicalPath </li>  
         }  
     }  
-</ul>  
+    </ul>  *@
     <form class="layui-form layui-form-pane" action="">
         <div class="layui-fluid" style="">
             <div class="layui-row">

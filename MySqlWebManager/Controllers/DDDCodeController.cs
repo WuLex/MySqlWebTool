@@ -8,6 +8,7 @@ using MySqlWebManager.Interfaces;
 using MySqlWebManager.Models;
 using MySqlWebManager.util;
 using SqlSugar;
+using System.Data;
 using System.Text;
 
 namespace MySqlWebManager.Controllers
@@ -259,7 +260,7 @@ namespace MySqlWebManager.Controllers
             for (int i = 0; i < layerList.Count; i++)
             {
                 //sb.Append(TemplateDict[layerList[i].CheckName]);
-                sb.Append(ReplaceTemplate(layerList[i].CheckName,TemplateDict[layerList[i].CheckName],tablename));
+                sb.Append(ReplaceTemplate(layerList[i].CheckName, TemplateDict[layerList[i].CheckName], tablename));
                 sb.Append("\r\n---------------------------------------------------------------------\r\n");
             }
 
@@ -302,14 +303,34 @@ namespace MySqlWebManager.Controllers
                     break;
 
                 case "cb_model":
-                    //   var tables = _db.DbMaintenance.GetTableInfoList(false);//true 走缓存 false不走缓存
-                    //   return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                    //.Replace("{Comment}", table.TableComment)
-                    //.Replace("{TableName}", tablename)
-                    //.Replace("{ModelName}", className)
-                    //.Replace("{KeyTypeName}", pkTypeName)
-                    //.Replace("{ModelProperties}", sb.ToString());
-                    return "";
+                    List<DbTable> alltables = _db.GetCurrentDatabaseTableList().ToList();
+                    var selecttable = alltables.Where(t => t.TableName == tablename).FirstOrDefault();
+                    if (selecttable != null)
+                    {
+                        var className = string.IsNullOrEmpty(selecttable.Alias) ? tablename : selecttable.Alias;
+                        var pkTypeName = selecttable.Columns.First(m => Convert.ToBoolean(m.IsPrimaryKey)).CSharpType;
+                        #region 构建实体属性
+                        var sb = new StringBuilder();
+                        foreach (var column in selecttable.Columns)
+                        {
+                            var tmp = GenerateEntityProperty(column);
+                            sb.AppendLine(tmp);
+                            sb.AppendLine();
+                        }
+                        #endregion 构建实体属性
+
+                        return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
+                      .Replace("{Comment}", selecttable.TableComment)
+                      .Replace("{TableName}", tablename)
+                      .Replace("{ModelName}", className)
+                      .Replace("{KeyTypeName}", pkTypeName)
+                      .Replace("{ModelProperties}", sb.ToString());
+                    }
+                    else
+                    {
+                        return "";
+                    }
+
                     break;
 
                 case "cb_repository":
@@ -322,16 +343,38 @@ namespace MySqlWebManager.Controllers
 
                 case "cb_service":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                  .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
-                  .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
-                  .Replace("{ServicesNamespace}", codeGenerateOption.ServicesNamespace)
-                  .Replace("{ModelTypeName}", tablename)
-                  .Replace("{KeyTypeName}", "Int");
+                    .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                    .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                    .Replace("{ServicesNamespace}", codeGenerateOption.ServicesNamespace)
+                    .Replace("{ModelTypeName}", tablename)
+                    .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_viewmodel":
-                    //TemplateDict.Add("cb_viewmodel", templateContent);
-                    return "";
+                    var viewName = tablename;
+                    //sqlserver
+                    //var sql = $"select top 1 * from {viewName}";
+                    var sql = $" select* from {viewName} limit 1,1";
+                   
+                    var dt = _db.Ado.GetDataTable(sql);
+                    #region 构建属性
+                    var columnBuilder = new StringBuilder();
+                    foreach (DataColumn column in dt.Columns)
+                    {
+                        if (codeGenerateOption.IsPascalCase)
+                        {
+                            columnBuilder.AppendLine($"[Column(\"{column.ColumnName}\")]");
+                        }
+                        columnBuilder.AppendLine(
+                                $"public {column.DataType.Name} {(codeGenerateOption.IsPascalCase ? column.ColumnName.ToPascalCase() : column.ColumnName)}" +
+                                "{ get; set; }");
+                        columnBuilder.AppendLine();
+                    }
+                    #endregion 构建属性
+                    return templatetext.Replace("{0}", codeGenerateOption.ViewModelsNamespace)
+                        .Replace("{1}", dt.TableName)
+                        .Replace("{2}", dt.TableName)
+                        .Replace("{3}", columnBuilder.ToString());
                     break;
 
                 default:
@@ -349,11 +392,11 @@ namespace MySqlWebManager.Controllers
                 sb.AppendLine("\t\t/// " + column.Comments);
                 sb.AppendLine("\t\t/// </summary>");
             }
-            if (column.IsPrimaryKey)
+            if (Convert.ToBoolean(column.IsPrimaryKey))
             {
                 sb.AppendLine("\t\t[Key]");
                 sb.AppendLine($"\t\t[Column(\"{column.ColName}\")]");
-                if (column.IsIdentity)
+                if (Convert.ToBoolean(column.IsIdentity))
                 {
                     sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
                 }
@@ -365,7 +408,7 @@ namespace MySqlWebManager.Controllers
                 {
                     sb.AppendLine($"\t\t[Column(\"{column.ColName}\")]");
                 }
-                if (!column.IsNullable)
+                if (!Convert.ToBoolean(column.IsNullable))
                 {
                     sb.AppendLine("\t\t[Required]");
                 }
@@ -375,13 +418,13 @@ namespace MySqlWebManager.Controllers
                 {
                     sb.AppendLine($"\t\t[MaxLength({column.ColumnLength.Value})]");
                 }
-                if (column.IsIdentity)
+                if (column.IsIdentity == "TRUE")
                 {
                     sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
                 }
 
                 if (colType.ToLower() != "string" && colType.ToLower() != "byte[]" && colType.ToLower() != "object" &&
-                    column.IsNullable)
+                    Convert.ToBoolean(column.IsNullable))
                 {
                     colType = colType + "?";
                 }

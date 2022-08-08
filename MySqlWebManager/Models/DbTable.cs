@@ -17,7 +17,7 @@
         /// <summary>
         /// 字段集合
         /// </summary>
-        public virtual ICollection<DbTableColumn> Columns { get; set; } = new List<DbTableColumn>();
+        public virtual List<DbTableColumn> Columns { get; set; } = new List<DbTableColumn>();
     }
 
 
@@ -33,11 +33,11 @@
         /// <summary>
         /// 是否自增
         /// </summary>
-        public bool IsIdentity { get; set; }
+        public string IsIdentity { get; set; }
         /// <summary>
         /// 是否主键
         /// </summary>
-        public bool IsPrimaryKey { get; set; }
+        public string IsPrimaryKey { get; set; }
         /// <summary>
         /// 字段数据类型
         /// </summary>
@@ -49,11 +49,11 @@
         /// <summary>
         /// 是否允许为空
         /// </summary>
-        public bool IsNullable { get; set; }
+        public string IsNullable { get; set; }
         /// <summary>
         /// 默认值
         /// </summary>
-        public string DefaultValue { get; set; }
+        public string? DefaultValue { get; set; }
         /// <summary>
         /// 字段说明
         /// </summary>
