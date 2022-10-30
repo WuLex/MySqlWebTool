@@ -3,6 +3,7 @@ using MySqlWebManager.Dtos;
 using MySqlWebManager.Interfaces;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 namespace MySqlWebManager.Implements
 {
     public class ConnectionManager : IConnectionManager
@@ -13,7 +14,8 @@ namespace MySqlWebManager.Implements
 
         private readonly IWebHostEnvironment _hostingEnvironment;
 
-        private static string _ContentRootPath = MyServiceProvider.ServiceProvider.GetRequiredService<IWebHostEnvironment>().ContentRootPath;
+        private static string _ContentRootPath =
+            MyServiceProvider.ServiceProvider.GetRequiredService<IWebHostEnvironment>().ContentRootPath;
 
         //= Path.Combine(HttpRuntime.AppDomainAppPath, @"App_Data\Connection.xml");
 
@@ -115,6 +117,7 @@ namespace MySqlWebManager.Implements
                 return null;
                 //throw new MyMessageException("connectionId is invalid.");
             }
+
             if (increasePriority)
             {
                 exist.Priority++;
@@ -157,7 +160,7 @@ namespace MySqlWebManager.Implements
 
         private void SaveListToFile()
         {
-            if (s_list == null || s_list.Count == 0)
+            if (s_list.Count == 0)
             {
                 try
                 {

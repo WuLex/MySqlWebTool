@@ -49,6 +49,7 @@ namespace MySqlWebManager.Controllers
         #endregion 变量
 
         #region 依赖注入
+
         private readonly IConfiguration _configuration;
         private readonly ISqlSugarClient _db; // 核心对象：拥有完整的SqlSugar全部功能
         private readonly IConnectionManager _connectionManager;
@@ -73,7 +74,8 @@ namespace MySqlWebManager.Controllers
             var fileInfoList = contents.Where(f => f.IsDirectory == false).ToList();
             for (int i = 0; i < fileInfoList.Count(); i++)
             {
-                var templateContent = await System.IO.File.ReadAllTextAsync(fileInfoList[i].PhysicalPath, Encoding.UTF8);
+                var templateContent =
+                    await System.IO.File.ReadAllTextAsync(fileInfoList[i].PhysicalPath, Encoding.UTF8);
             }
 
             return View(contents);
@@ -124,7 +126,9 @@ namespace MySqlWebManager.Controllers
                 _db.Ado.Connection.ConnectionString = conn;
 
                 string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
-                var totalCount = await _db.Ado.GetIntAsync(string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
+                var totalCount =
+                    await _db.Ado.GetIntAsync(
+                        string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
                 if (tableInputDto.Page >= 1 && tableInputDto.Limit > 0)
                 {
                     int offsetNum = (tableInputDto.Page - 1) * tableInputDto.Limit;
@@ -172,6 +176,7 @@ namespace MySqlWebManager.Controllers
             {
                 codeBuilder.Append((await GenerateTemplateCodeAsync(generateCodeInputDto)) ?? "");
             }
+
             return Content(codeBuilder.ToString());
         }
 
@@ -203,6 +208,7 @@ namespace MySqlWebManager.Controllers
             }
 
             #region 拼接代码字符串
+
             sb.Append("\n\n\n//=============DDD===============\n");
 
             #endregion 拼接代码字符串
@@ -214,7 +220,8 @@ namespace MySqlWebManager.Controllers
             var fileInfoList = contents.Where(f => f.IsDirectory == false).ToList();
             for (int i = 0; i < fileInfoList.Count(); i++)
             {
-                var templateContent = await System.IO.File.ReadAllTextAsync(fileInfoList[i].PhysicalPath, Encoding.UTF8);
+                var templateContent =
+                    await System.IO.File.ReadAllTextAsync(fileInfoList[i].PhysicalPath, Encoding.UTF8);
                 switch (fileInfoList[i].Name)
                 {
                     case "ApiControllerTemplate.txt":
@@ -254,6 +261,7 @@ namespace MySqlWebManager.Controllers
                         break;
                 }
             }
+
             #endregion 模板文件读取
 
             var layerList = generateCodeInputDto.MethodList.Where(c => c.IsChecked == true).ToList();
@@ -273,43 +281,45 @@ namespace MySqlWebManager.Controllers
             {
                 case "cb_apicontroller":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                   .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
-                   .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
-                   .Replace("{ModelTypeName}", tablename)
-                   .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                        .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_controller":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                 .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
-                 .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
-                 .Replace("{ModelTypeName}", tablename)
-                 .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                        .Replace("{ControllersNamespace}", codeGenerateOption.ControllersNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_irepository":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
-                                        .Replace("{ModelTypeName}", tablename)
-                                        .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_iservice":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                 .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
-                 .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
-                 .Replace("{ModelTypeName}", tablename)
-                 .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                        .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_model":
                     List<DbTable> alltables = _db.GetCurrentDatabaseTableList().ToList();
-                    var selecttable = alltables.Where(t => t.TableName == tablename).FirstOrDefault();
+                    var selecttable = alltables.FirstOrDefault(t => t.TableName == tablename);
                     if (selecttable != null)
                     {
                         var className = string.IsNullOrEmpty(selecttable.Alias) ? tablename : selecttable.Alias;
                         var pkTypeName = selecttable.Columns.First(m => Convert.ToBoolean(m.IsPrimaryKey)).CSharpType;
+
                         #region 构建实体属性
+
                         var sb = new StringBuilder();
                         foreach (var column in selecttable.Columns)
                         {
@@ -317,14 +327,15 @@ namespace MySqlWebManager.Controllers
                             sb.AppendLine(tmp);
                             sb.AppendLine();
                         }
+
                         #endregion 构建实体属性
 
                         return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                      .Replace("{Comment}", selecttable.TableComment)
-                      .Replace("{TableName}", tablename)
-                      .Replace("{ModelName}", className)
-                      .Replace("{KeyTypeName}", pkTypeName)
-                      .Replace("{ModelProperties}", sb.ToString());
+                            .Replace("{Comment}", selecttable.TableComment)
+                            .Replace("{TableName}", tablename)
+                            .Replace("{ModelName}", className)
+                            .Replace("{KeyTypeName}", pkTypeName)
+                            .Replace("{ModelProperties}", sb.ToString());
                     }
                     else
                     {
@@ -335,19 +346,19 @@ namespace MySqlWebManager.Controllers
 
                 case "cb_repository":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
-                                        .Replace("{RepositoriesNamespace}", codeGenerateOption.RepositoriesNamespace)
-                                        .Replace("{ModelTypeName}", tablename)
-                                        .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                        .Replace("{RepositoriesNamespace}", codeGenerateOption.RepositoriesNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_service":
                     return templatetext.Replace("{ModelsNamespace}", codeGenerateOption.ModelsNamespace)
-                    .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
-                    .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
-                    .Replace("{ServicesNamespace}", codeGenerateOption.ServicesNamespace)
-                    .Replace("{ModelTypeName}", tablename)
-                    .Replace("{KeyTypeName}", "Int");
+                        .Replace("{IRepositoriesNamespace}", codeGenerateOption.IRepositoriesNamespace)
+                        .Replace("{IServicesNamespace}", codeGenerateOption.IServicesNamespace)
+                        .Replace("{ServicesNamespace}", codeGenerateOption.ServicesNamespace)
+                        .Replace("{ModelTypeName}", tablename)
+                        .Replace("{KeyTypeName}", "Int");
                     break;
 
                 case "cb_viewmodel":
@@ -355,9 +366,11 @@ namespace MySqlWebManager.Controllers
                     //sqlserver
                     //var sql = $"select top 1 * from {viewName}";
                     var sql = $" select* from {viewName} limit 1,1";
-                   
+
                     var dt = _db.Ado.GetDataTable(sql);
+
                     #region 构建属性
+
                     var columnBuilder = new StringBuilder();
                     foreach (DataColumn column in dt.Columns)
                     {
@@ -365,12 +378,15 @@ namespace MySqlWebManager.Controllers
                         {
                             columnBuilder.AppendLine($"[Column(\"{column.ColumnName}\")]");
                         }
+
                         columnBuilder.AppendLine(
-                                $"public {column.DataType.Name} {(codeGenerateOption.IsPascalCase ? column.ColumnName.ToPascalCase() : column.ColumnName)}" +
-                                "{ get; set; }");
+                            $"public {column.DataType.Name} {(codeGenerateOption.IsPascalCase ? column.ColumnName.ToPascalCase() : column.ColumnName)}" +
+                            "{ get; set; }");
                         columnBuilder.AppendLine();
                     }
+
                     #endregion 构建属性
+
                     return templatetext.Replace("{0}", codeGenerateOption.ViewModelsNamespace)
                         .Replace("{1}", dt.TableName)
                         .Replace("{2}", dt.TableName)
@@ -392,6 +408,7 @@ namespace MySqlWebManager.Controllers
                 sb.AppendLine("\t\t/// " + column.Comments);
                 sb.AppendLine("\t\t/// </summary>");
             }
+
             if (Convert.ToBoolean(column.IsPrimaryKey))
             {
                 sb.AppendLine("\t\t[Key]");
@@ -400,6 +417,7 @@ namespace MySqlWebManager.Controllers
                 {
                     sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
                 }
+
                 sb.AppendLine($"\t\tpublic override {column.CSharpType} Id " + "{get;set;}");
             }
             else
@@ -408,6 +426,7 @@ namespace MySqlWebManager.Controllers
                 {
                     sb.AppendLine($"\t\t[Column(\"{column.ColName}\")]");
                 }
+
                 if (!Convert.ToBoolean(column.IsNullable))
                 {
                     sb.AppendLine("\t\t[Required]");
@@ -418,6 +437,7 @@ namespace MySqlWebManager.Controllers
                 {
                     sb.AppendLine($"\t\t[MaxLength({column.ColumnLength.Value})]");
                 }
+
                 if (column.IsIdentity == "TRUE")
                 {
                     sb.AppendLine("\t\t[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
@@ -464,9 +484,11 @@ namespace MySqlWebManager.Controllers
             }
 
             #region 获取表名称列表信息
+
             string getTableSql = string.Format(gettables, connectionDto.Db);
             var tableNameList = await _db.Ado.SqlQueryAsync<string>(getTableSql);
             var totalCount = tableNameList.Count();
+
             #endregion 获取表名称列表信息
 
             //--------------------------------------------------
@@ -478,6 +500,7 @@ namespace MySqlWebManager.Controllers
                     string wjj = ModelFilePath + connectionDto.Db;
 
                     #region 检查是否存在,不存在则创建文件
+
                     if (!Directory.Exists(wjj))
                     {
                         Directory.CreateDirectory(wjj);
@@ -489,21 +512,29 @@ namespace MySqlWebManager.Controllers
                         //不存在,则创建
                         System.IO.File.Create(path).Close();
                     }
+
                     #endregion 检查是否存在,不存在则创建文件
 
                     #region 生成文件到指定路径
+
                     //写
                     using (StreamWriter w = System.IO.File.AppendText(path))
                     {
                         StringBuilder sb = new StringBuilder();
+
                         #region 获取表字段结构信息
-                        List<TableField> dataList = await _db.Ado.SqlQueryAsync<TableField>(string.Format(getflieds, tablename, connectionDto.Db));
+
+                        List<TableField> dataList =
+                            await _db.Ado.SqlQueryAsync<TableField>(string.Format(getflieds, tablename,
+                                connectionDto.Db));
                         totalCount = dataList.Count();
                         if (totalCount <= 0)
                         {
                             return Content("NoData");
                         }
+
                         #endregion 获取表字段结构信息
+
                         #region
 
                         sb.Append("using System; ");
@@ -526,7 +557,8 @@ namespace MySqlWebManager.Controllers
                                 sb.Append("\r\t\t/// </summary>");
                             }
 
-                            sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
+                            sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname +
+                                      "{ get; set; }\n");
 
                             #endregion 参数
                         }
@@ -540,8 +572,10 @@ namespace MySqlWebManager.Controllers
                         w.Flush();
                         w.Close();
                     }
+
                     #endregion
                 }
+
                 return Content("success");
             }
             catch (Exception ex)

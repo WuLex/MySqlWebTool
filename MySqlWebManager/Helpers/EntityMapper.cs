@@ -17,12 +17,15 @@ namespace MySqlWebManager.Helpers
         private delegate T Load<T>(DataRow dataRecord);
 
         //用于构造Emit的DataRow中获取字段的方法信息
-        private static readonly MethodInfo getValueMethod = typeof(DataRow).GetMethod("get_Item", new Type[] { typeof(int) });
+        private static readonly MethodInfo getValueMethod =
+            typeof(DataRow).GetMethod("get_Item", new Type[] { typeof(int) });
 
         //用于构造Emit的DataRow中判断是否为空行的方法信息
-        private static readonly MethodInfo isDBNullMethod = typeof(DataRow).GetMethod("IsNull", new Type[] { typeof(int) });
+        private static readonly MethodInfo isDBNullMethod =
+            typeof(DataRow).GetMethod("IsNull", new Type[] { typeof(int) });
 
-        private static readonly ConcurrentDictionary<Type, Delegate> CachedMappers = new ConcurrentDictionary<Type, Delegate>();
+        private static readonly ConcurrentDictionary<Type, Delegate> CachedMappers =
+            new ConcurrentDictionary<Type, Delegate>();
 
         public static IEnumerable<T> ToList<T>(this DbDataReader dr)
         {
@@ -47,7 +50,8 @@ namespace MySqlWebManager.Helpers
                     il.Emit(OpCodes.Ldarg_0);
                     il.Emit(OpCodes.Ldstr, pi.Name);
                     // Push the column value onto the stack
-                    il.Emit(OpCodes.Callvirt, typeof(DbDataReader).GetMethod("get_Item", new Type[] { typeof(string) }));
+                    il.Emit(OpCodes.Callvirt,
+                        typeof(DbDataReader).GetMethod("get_Item", new Type[] { typeof(string) }));
                     // Depending on the type of the property, convert the datareader column value to the type
                     switch (pi.PropertyType.Name)
                     {
@@ -64,7 +68,8 @@ namespace MySqlWebManager.Helpers
                             break;
 
                         case "Boolean":
-                            il.Emit(OpCodes.Call, typeof(Convert).GetMethod("ToBoolean", new Type[] { typeof(object) }));
+                            il.Emit(OpCodes.Call,
+                                typeof(Convert).GetMethod("ToBoolean", new Type[] { typeof(object) }));
                             break;
 
                         case "String":
@@ -72,20 +77,24 @@ namespace MySqlWebManager.Helpers
                             break;
 
                         case "DateTime":
-                            il.Emit(OpCodes.Call, typeof(Convert).GetMethod("ToDateTime", new Type[] { typeof(object) }));
+                            il.Emit(OpCodes.Call,
+                                typeof(Convert).GetMethod("ToDateTime", new Type[] { typeof(object) }));
                             break;
 
                         case "Decimal":
-                            il.Emit(OpCodes.Call, typeof(Convert).GetMethod("ToDecimal", new Type[] { typeof(object) }));
+                            il.Emit(OpCodes.Call,
+                                typeof(Convert).GetMethod("ToDecimal", new Type[] { typeof(object) }));
                             break;
 
                         default:
                             // Don't set the field value as it's an unsupported type
                             continue;
                     }
+
                     // Set the T instances property value
                     il.Emit(OpCodes.Callvirt, typeof(T).GetMethod("set_" + pi.Name, new Type[] { pi.PropertyType }));
                 }
+
                 // Load the T instance onto the stack
                 il.Emit(OpCodes.Ldloc_0);
                 // Return
@@ -93,6 +102,7 @@ namespace MySqlWebManager.Helpers
                 // Cache the method so we won't have to create it again for the type T
                 CachedMappers.TryAdd(typeof(T), dm.CreateDelegate(typeof(MapEntity<T>)));
             }
+
             // Get a delegate reference to the dynamic method
             MapEntity<T> invokeMapEntity = (MapEntity<T>)CachedMappers[typeof(T)];
             // For each row, map the row to an instance of T and yield return it
@@ -116,7 +126,8 @@ namespace MySqlWebManager.Helpers
             //从rowMapMethods查找当前T类对应的转换方法，没有则使用Emit构造一个。
             if (!CachedMappers.ContainsKey(typeof(T)))
             {
-                DynamicMethod method = new DynamicMethod("DynamicCreateEntity_" + typeof(T).Name, typeof(T), new Type[] { typeof(DataRow) }, typeof(T), true);
+                DynamicMethod method = new DynamicMethod("DynamicCreateEntity_" + typeof(T).Name, typeof(T),
+                    new Type[] { typeof(DataRow) }, typeof(T), true);
                 ILGenerator generator = method.GetILGenerator();
                 LocalBuilder result = generator.DeclareLocal(typeof(T));
                 generator.Emit(OpCodes.Newobj, typeof(T).GetConstructor(Type.EmptyTypes));
@@ -140,6 +151,7 @@ namespace MySqlWebManager.Helpers
                         generator.MarkLabel(endIfLabel);
                     }
                 }
+
                 generator.Emit(OpCodes.Ldloc, result);
                 generator.Emit(OpCodes.Ret);
                 //构造完成以后传给rowMap
@@ -149,6 +161,7 @@ namespace MySqlWebManager.Helpers
             {
                 rowMap = (Load<T>)CachedMappers[typeof(T)];
             }
+
             //遍历Datatable的rows集合，调用rowMap把DataRow转换为对象（T）
             foreach (DataRow info in dt.Rows)
                 list.Add(rowMap(info));

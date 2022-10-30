@@ -96,7 +96,9 @@ namespace MySqlWebManager.Controllers
                 _db.Ado.Connection.ConnectionString = conn;
 
                 string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
-                var totalCount = await _db.Ado.GetIntAsync(string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
+                var totalCount =
+                    await _db.Ado.GetIntAsync(
+                        string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
                 if (tableInputDto.Page >= 1 && tableInputDto.Limit > 0)
                 {
                     int offsetNum = (tableInputDto.Page - 1) * tableInputDto.Limit;
@@ -1762,7 +1764,6 @@ namespace MySqlWebManager.Controllers
             return Content(codeBuilder.ToString());
         }
 
-       
 
         protected async Task<IActionResult> BatchGenerationAsync(BatchGenerationInputDto batchGenerationInputDto)
         {
@@ -1775,7 +1776,6 @@ namespace MySqlWebManager.Controllers
                 _connectionManager.GetConnectionDtoById(batchGenerationInputDto.ConnectionId, true);
             if (connectionDto != null)
             {
-               
                 conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid,
                     connectionDto.Pwd);
                 _db.Ado.Connection.ConnectionString = conn;
@@ -1784,12 +1784,14 @@ namespace MySqlWebManager.Controllers
             {
                 return Content("数据库连接信息丢失,请重新连接!");
             }
-         
-            
+
+
             #region 获取表名称列表信息
+
             string getTableSql = string.Format(gettables, connectionDto.Db);
             var tableNameList = await _db.Ado.SqlQueryAsync<string>(getTableSql);
             var totalCount = tableNameList.Count();
+
             #endregion
 
             //--------------------------------------------------
@@ -1801,6 +1803,7 @@ namespace MySqlWebManager.Controllers
                     string wjj = ModelFilePath + connectionDto.Db;
 
                     #region 检查是否存在,不存在则创建文件
+
                     if (!Directory.Exists(wjj))
                     {
                         Directory.CreateDirectory(wjj);
@@ -1812,21 +1815,29 @@ namespace MySqlWebManager.Controllers
                         //不存在,则创建
                         System.IO.File.Create(path).Close();
                     }
+
                     #endregion
 
                     #region 生成文件到指定路径
+
                     //写
                     using (StreamWriter w = System.IO.File.AppendText(path))
                     {
                         StringBuilder sb = new StringBuilder();
+
                         #region 获取表字段结构信息
-                        List<TableField> dataList = await _db.Ado.SqlQueryAsync<TableField>(string.Format(getflieds, tablename, connectionDto.Db));
+
+                        List<TableField> dataList =
+                            await _db.Ado.SqlQueryAsync<TableField>(string.Format(getflieds, tablename,
+                                connectionDto.Db));
                         totalCount = dataList.Count();
-                        if (totalCount<=0)
+                        if (totalCount <= 0)
                         {
                             return Content("NoData");
                         }
+
                         #endregion
+
                         #region
 
                         sb.Append("using System; ");
@@ -1849,7 +1860,8 @@ namespace MySqlWebManager.Controllers
                                 sb.Append("\r\t\t/// </summary>");
                             }
 
-                            sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname + "{ get; set; }\n");
+                            sb.Append("\r\t\tpublic " + MysqlCommonHelper.GetFiledType(fliedtype) + " " + fliedname +
+                                      "{ get; set; }\n");
 
                             #endregion
                         }
@@ -1863,10 +1875,11 @@ namespace MySqlWebManager.Controllers
                         w.Flush();
                         w.Close();
                     }
+
                     #endregion
                 }
-                return Content("success");
 
+                return Content("success");
             }
             catch (Exception ex)
             {

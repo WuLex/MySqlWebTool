@@ -6,7 +6,6 @@ namespace MySqlWebManager.Models
     {
         public PageDataResult()
         {
-
         }
 
         public PageDataResult(List<T> data, int totalCount)
@@ -28,5 +27,5 @@ namespace MySqlWebManager.Models
         /// 结果消息
         /// </summary>
         public string Msg { get; set; }
-    } 
+    }
 }
