@@ -1,7 +1,11 @@
-﻿namespace MySqlWebManager.Common
+﻿using System.Text.RegularExpressions;
+
+namespace MySqlWebManager.Common
 {
     public class MysqlCommonHelper
     {
+        private static readonly Regex MysqlIdentifierRegex = new("^[A-Za-z0-9_]+$", RegexOptions.Compiled);
+
         public MysqlCommonHelper()
         {
             //
@@ -107,6 +111,21 @@
                     return type;
                     break;
             }
+        }
+
+        public static bool IsValidIdentifier(string identifier)
+        {
+            return !string.IsNullOrWhiteSpace(identifier) && MysqlIdentifierRegex.IsMatch(identifier);
+        }
+
+        public static string EscapeIdentifier(string identifier)
+        {
+            if (!IsValidIdentifier(identifier))
+            {
+                throw new ArgumentException("Invalid MySQL identifier.", nameof(identifier));
+            }
+
+            return $"`{identifier}`";
         }
     }
 }
