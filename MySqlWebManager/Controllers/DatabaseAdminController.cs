@@ -23,15 +23,21 @@ namespace MySqlWebManager.Controllers
 
         //查询表名的sql字符串
         private readonly string gettables = "select table_name from information_schema.tables where table_schema='{0}'";
+        private const string GetTablesSqlWithParams = "select table_name from information_schema.tables where table_schema=@db";
 
         //查询表结构字段的sql字符串
         private readonly string getflieds =
             "select column_name ColumnName,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE as IS_NULL,column_comment as Comment,extra as Auto,CHARACTER_MAXIMUM_LENGTH as MaxLen " +
             "from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}' ";
+        private const string GetFieldsSqlWithParams =
+            "select column_name ColumnName,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE as IS_NULL,column_comment as Comment,extra as Auto,CHARACTER_MAXIMUM_LENGTH as MaxLen " +
+            "from INFORMATION_SCHEMA.COLUMNS Where table_name =@table and table_schema =@db ";
 
         //查询表结构字段总数的sql 
         private readonly string getTotalCountSql =
             "select count(1) as totalcount from INFORMATION_SCHEMA.COLUMNS Where table_name ='{0}' and table_schema ='{1}' ";
+        private const string GetTotalCountSqlWithParams =
+            "select count(1) as totalcount from INFORMATION_SCHEMA.COLUMNS Where table_name =@table and table_schema =@db ";
 
         #endregion 变量
 
@@ -63,7 +69,11 @@ namespace MySqlWebManager.Controllers
         public async Task<TableInfoDto> GetTablesListAsync([FromBody] ConnectionDto connectionDto)
         {
             var tableInfoDto = new TableInfoDto() { ConnectionId = "", TableNameList = new List<string>() };
-            string getTableSql = string.Format(gettables, connectionDto.Db);
+            if (!MysqlCommonHelper.IsValidIdentifier(connectionDto.Db))
+            {
+                return tableInfoDto;
+            }
+
             conn = string.Format(connStr, connectionDto.Server, connectionDto.Db, connectionDto.Uid, connectionDto.Pwd);
             _db.Ado.Connection.ConnectionString = conn;
             try
@@ -73,7 +83,8 @@ namespace MySqlWebManager.Controllers
                 _connectionManager.AddConnection(connectionDto); //添加连接信息到xml
 
                 tableInfoDto.ConnectionId = connectionDto.ConnectionId;
-                tableInfoDto.TableNameList = await _db.Ado.SqlQueryAsync<string>(getTableSql);
+                tableInfoDto.TableNameList = await _db.Ado.SqlQueryAsync<string>(GetTablesSqlWithParams,
+                    new SugarParameter("@db", connectionDto.Db));
             }
             catch (Exception ex)
             {
@@ -95,10 +106,26 @@ namespace MySqlWebManager.Controllers
                     connectionDto.Pwd);
                 _db.Ado.Connection.ConnectionString = conn;
 
-                string getTableFieldSql = string.Format(getflieds, tableInputDto.TableName, connectionDto.Db);
-                var totalCount =
-                    await _db.Ado.GetIntAsync(
-                        string.Format(getTotalCountSql, tableInputDto.TableName, connectionDto.Db));
+                if (!MysqlCommonHelper.IsValidIdentifier(tableInputDto.TableName) ||
+                    !MysqlCommonHelper.IsValidIdentifier(connectionDto.Db))
+                {
+                    return new PageDataResult<TableField>()
+                    {
+                        Msg = "invalid table or database name",
+                        Code = -1,
+                        Count = 0,
+                        Data = new List<TableField>()
+                    };
+                }
+
+                var parameters = new[]
+                {
+                    new SugarParameter("@table", tableInputDto.TableName),
+                    new SugarParameter("@db", connectionDto.Db)
+                };
+
+                string getTableFieldSql = GetFieldsSqlWithParams;
+                var totalCount = await _db.Ado.GetIntAsync(GetTotalCountSqlWithParams, parameters);
                 if (tableInputDto.Page >= 1 && tableInputDto.Limit > 0)
                 {
                     int offsetNum = (tableInputDto.Page - 1) * tableInputDto.Limit;
@@ -107,7 +134,7 @@ namespace MySqlWebManager.Controllers
                 }
 
 
-                List<TableField> datList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql);
+                List<TableField> datList = await _db.Ado.SqlQueryAsync<TableField>(getTableFieldSql, parameters);
 
                 return new PageDataResult<TableField>()
                 {
@@ -119,7 +146,13 @@ namespace MySqlWebManager.Controllers
             }
             else
             {
-                return null;
+                return new PageDataResult<TableField>()
+                {
+                    Msg = "connection not found",
+                    Code = -1,
+                    Count = 0,
+                    Data = new List<TableField>()
+                };
             }
         }
 

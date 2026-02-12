@@ -18,7 +18,7 @@ namespace MySqlWebManager.Extentions
                     return ToUInt16(str);
                 case "System.Int16":
                     return ToInt16(str);
-                case "System.uInt32":
+                case "System.UInt32":
                     return ToUInt32(str);
                 case "System.Int32":
                     return str.ToInt32();
